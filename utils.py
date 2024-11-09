@@ -1,4 +1,7 @@
+from collections import defaultdict
+import random
 from typing import TYPE_CHECKING, List
+from order import Order
 
 def find_longest_common_subsequence(o1: List[int], o2: List[int]):
     n, m = len(o1), len(o2)
@@ -16,3 +19,18 @@ def find_longest_common_subsequence(o1: List[int], o2: List[int]):
 
     # The length of the longest common subsequence is in dp[n][m]
     return dp[n][m]
+
+def shuffle_orders_per_price_group(orders: List[Order]) -> List[Order]:
+    # Group orders by price
+    price_groups = defaultdict(list)
+    for order in orders:
+        price_groups[order.price].append(order)
+
+    # Shuffle each price group individually
+    for price, group in price_groups.items():
+        random.shuffle(group)
+
+    # Flatten the shuffled groups back into a single list
+    shuffled_orders = [order for group in price_groups.values() for order in group]
+
+    return shuffled_orders

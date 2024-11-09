@@ -31,9 +31,12 @@ def create_order_sequence() -> List[Order]:
 
     return orders
 
-
 def emulate_loq(orders: List[Order]):
-    # TODO ...
+    N = 10
+    for i in range(0, len(orders), N):
+        window = orders[i:i+N]
+        random.shuffle(window)
+        orders[i:i+N] = window
     return orders
 
 def compare_matched_orders(o1: List[int], o2: List[int]):
