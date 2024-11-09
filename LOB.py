@@ -1,5 +1,5 @@
 from sortedcontainers import SortedDict, SortedList
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from order import Order
 from datetime import datetime
 
@@ -16,6 +16,7 @@ class LimitOrderBook:
         # SortedDict sorts prices automatically
         self.buy_orders = SortedDict(lambda x: -x)  # Highest price first for buys
         self.sell_orders = SortedDict()  # Lowest price first for sells
+        self.matched = []
 
     def add_order(self, order: Order):
         """Add a new order to the LOB at the correct price level."""
@@ -25,7 +26,6 @@ class LimitOrderBook:
 
         # Add the order directly to the SortedList, which maintains order by timestamp
         order_book[order.price].add(order)
-        print(f"Order added: {order}")
         self.match_orders()
 
     def match_orders(self):
@@ -35,12 +35,12 @@ class LimitOrderBook:
             best_ask = self.sell_orders.peekitem(0)  # Lowest ask
 
             if best_bid[0] >= best_ask[0]:  # Check if there's a match
-                bid_order = best_bid[1][0]  # Oldest order at the highest bid price
-                ask_order = best_ask[1][0]  # Oldest order at the lowest ask price
+                bid_order: Order = best_bid[1][0]  # Oldest order at the highest bid price
+                ask_order: Order = best_ask[1][0]  # Oldest order at the lowest ask price
                 matched_quantity = min(bid_order.quantity, ask_order.quantity)
 
-                # Print match details
-                print(f"Matched {matched_quantity} units at {ask_order.price} between Order {bid_order.order_id} and Order {ask_order.order_id}")
+                self.matched.append(bid_order.order_id)
+                self.matched.append(ask_order.order_id)
 
                 # Update order quantities
                 bid_order.quantity -= matched_quantity
@@ -71,6 +71,9 @@ class LimitOrderBook:
             for order in orders:
                 print(order)
         print("")
+
+    def get_matched_orders_sequence(self) -> List[int]:
+        return self.matched
 
 # lob = LimitOrderBook()
 # lob.add_order(Order(1, 'buy', 100, 10))
