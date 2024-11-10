@@ -34,3 +34,10 @@ def shuffle_orders_per_price_group(orders: List[Order]) -> List[Order]:
     shuffled_orders = [order for group in price_groups.values() for order in group]
 
     return shuffled_orders
+
+def windowed_shuffle(orders: List[Order], win: int=10):
+    for i in range(0, len(orders), win):
+        window = orders[i:i+win]
+        random.shuffle(window)
+        orders[i:i+win] = window
+    return orders

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 class Order:
     def __init__(self, order_id: int, side: str, price: int, quantity: int, timestamp: int=None):
         self.order_id = order_id
-        self.side = side  # 'buy' or 'sell'
+        self.side = side  # 'bid' or 'ask'
         self.price = price
         self.quantity = quantity
         self.timestamp = timestamp or int(datetime.now().timestamp() * 1_000_000)

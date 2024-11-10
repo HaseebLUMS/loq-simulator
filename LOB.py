@@ -5,22 +5,22 @@ from datetime import datetime
 
 '''
 lob = LimitOrderBook()
-lob.add_order(Order(1, 'buy', 100, 10))
-lob.add_order(Order(2, 'sell', 95, 5))
-lob.add_order(Order(3, 'sell', 105, 8))
-lob.add_order(Order(4, 'buy', 100, 15, datetime(2024, 11, 9, 12, 30)))  # Custom timestamp
+lob.add_order(Order(1, 'bid', 100, 10))
+lob.add_order(Order(2, 'ask', 95, 5))
+lob.add_order(Order(3, 'ask', 105, 8))
+lob.add_order(Order(4, 'bid', 100, 15, datetime(2024, 11, 9, 12, 30)))  # Custom timestamp
 lob.display_order_book()
 '''
 class LimitOrderBook:
     def __init__(self):
         # SortedDict sorts prices automatically
-        self.buy_orders = SortedDict(lambda x: -x)  # Highest price first for buys
-        self.sell_orders = SortedDict()  # Lowest price first for sells
+        self.bid_orders = SortedDict(lambda x: -x)  # Highest price first for bids
+        self.ask_orders = SortedDict()  # Lowest price first for asks
         self.matched = []
 
     def add_order(self, order: Order):
         """Add a new order to the LOB at the correct price level."""
-        order_book = self.buy_orders if order.side == 'buy' else self.sell_orders
+        order_book = self.bid_orders if order.side == 'bid' else self.ask_orders
         if order.price not in order_book:
             order_book[order.price] = SortedList()
 
@@ -29,10 +29,10 @@ class LimitOrderBook:
         self.match_orders()
 
     def match_orders(self):
-        """Match buy and sell orders based on price and timestamp priority."""
-        while self.buy_orders and self.sell_orders:
-            best_bid = self.buy_orders.peekitem(0)  # Highest bid
-            best_ask = self.sell_orders.peekitem(0)  # Lowest ask
+        """Match bid and ask orders based on price and timestamp priority."""
+        while self.bid_orders and self.ask_orders:
+            best_bid = self.bid_orders.peekitem(0)  # Highest bid
+            best_ask = self.ask_orders.peekitem(0)  # Lowest ask
 
             if best_bid[0] >= best_ask[0]:  # Check if there's a match
                 bid_order: Order = best_bid[1][0]  # Oldest order at the highest bid price
@@ -50,24 +50,24 @@ class LimitOrderBook:
                 if bid_order.quantity == 0:
                     best_bid[1].pop(0)
                     if not best_bid[1]:  # Remove price level if no orders remain
-                        del self.buy_orders[best_bid[0]]
+                        del self.bid_orders[best_bid[0]]
                 if ask_order.quantity == 0:
                     best_ask[1].pop(0)
                     if not best_ask[1]:  # Remove price level if no orders remain
-                        del self.sell_orders[best_ask[0]]
+                        del self.ask_orders[best_ask[0]]
             else:
                 break  # No more matches possible
 
     def display_order_book(self):
         """Display the current state of the order book."""
         print("\nOrder Book:")
-        print("Buy Orders:")
-        for price, orders in self.buy_orders.items():
+        print("bid Orders:")
+        for price, orders in self.bid_orders.items():
             for order in orders:
                 print(order)
 
-        print("Sell Orders:")
-        for price, orders in self.sell_orders.items():
+        print("ask Orders:")
+        for price, orders in self.ask_orders.items():
             for order in orders:
                 print(order)
         print("")
@@ -76,8 +76,8 @@ class LimitOrderBook:
         return self.matched
 
 # lob = LimitOrderBook()
-# lob.add_order(Order(1, 'buy', 100, 10))
-# lob.add_order(Order(2, 'sell', 95, 5))
-# lob.add_order(Order(3, 'sell', 105, 8))
-# lob.add_order(Order(4, 'buy', 100, 15))
+# lob.add_order(Order(1, 'bid', 100, 10))
+# lob.add_order(Order(2, 'ask', 95, 5))
+# lob.add_order(Order(3, 'ask', 105, 8))
+# lob.add_order(Order(4, 'bid', 100, 15))
 # lob.display_order_book()
