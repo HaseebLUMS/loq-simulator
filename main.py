@@ -65,13 +65,8 @@ def compare_matched_orders(o1: List[int], o2: List[int]):
 def main():
     # Create a sequence of orders, containing several prices, and traders
     orders = create_order_sequence()
-    # orders = [
-    #     Order(1, 'bid', 5, 1, 1),
-    #     Order(2, 'ask', 5, 1, 2),
-    #     Order(3, 'ask', 4, 1, 3),
-    # ]
 
-    # Feed them to a ME, which maintains an LOB and processes the sequence, and get output O denoting which order got matched with what other order
+    # Feed them to a ME, which maintains an LOB and processes the sequence, and get output o1 denoting which order got matched with what other order
     lob = LimitOrderBook()
     for o in orders:
         lob.add_order(o)
@@ -91,7 +86,7 @@ def main():
     l = compare_matched_orders(orders_ids, reordered_orders_ids)
     print("After reordering, largest common subsequence of RECEIVED orders at ME: ", (100.0*l/len(orders_ids)), "%")
 
-    # Feed then reordered sequence to ME and get the output O'
+    # Feed then reordered sequence to ME and get the output o2
     lob = LimitOrderBook()
     for o in reordered_orders:
         lob.add_order(o)
@@ -101,14 +96,8 @@ def main():
     print("Matched orders1: ", len(o1))
     print("Matched orders2: ", len(o2))
 
-    # Compare o1 to o2
-    # if o1 == o2:
-    #     print("Exactly the same")
-    # else:
-    #     print("Different matched orders")
-
     l = compare_matched_orders(o1, o2)
-    print("largest common subsequence of MATCHED orders at ME: ", (100.0*l/len(o1)), "%")
+    print("largest common subsequence of MATCHED orders at ME: ", (100.0*l/max(len(o1), len(o2))), "%")
 
 if __name__ == "__main__":
     main()
