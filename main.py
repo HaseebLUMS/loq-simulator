@@ -1,10 +1,10 @@
-import heapq
 from typing import TYPE_CHECKING, List
 from LOB import LimitOrderBook
 from order import Order
 import random
 import utils
 import config
+import LOQ
 
 def create_order_sequence() -> List[Order]:
     n = config.TOTAL_ORDERS
@@ -31,34 +31,6 @@ def create_order_sequence() -> List[Order]:
 
     return orders
 
-def emulate_loq(orders: List[Order], win: int) -> List[Order]:
-    bids = []
-    asks = []
-
-    # Fill the queue
-    window = orders[0:win]
-    for order in window:
-        if order.side == 'bid': heapq.heappush(bids, (-order.price, order.timestamp, order))
-        else: heapq.heappush(asks, (order.price, order.timestamp, order))
-
-    reordered_orders = []
-
-    # Dequeu round robin and keep on filling the queue with remaining orders
-    for order in orders[win:]:
-        if bids: reordered_orders.append(heapq.heappop(bids)[2])
-        if asks: reordered_orders.append(heapq.heappop(asks)[2])
-
-        if order.side == 'bid': heapq.heappush(bids, (-order.price, order.timestamp, order))
-        else: heapq.heappush(asks, (order.price, order.timestamp, order))
-
-    # Drain the queue
-    while bids or asks:
-        if bids: reordered_orders.append(heapq.heappop(bids)[2])
-        if asks: reordered_orders.append(heapq.heappop(asks)[2])
-
-    return reordered_orders
-
-
 def compare_matched_orders(o1: List[int], o2: List[int]):
     return utils.find_longest_common_subsequence(o1, o2)
 
@@ -74,7 +46,7 @@ def main():
     o1 = lob.get_matched_orders_sequence()
 
     # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
-    reordered_orders = emulate_loq(orders, win=int((config.QUEUE_SIZE/100)*config.TOTAL_ORDERS))
+    reordered_orders = LOQ.emulate_loq(orders, win=int((config.QUEUE_SIZE/100)*config.TOTAL_ORDERS))
 
     # Just after reordering check how much of the sequence is same
     reordered_orders_ids = []
