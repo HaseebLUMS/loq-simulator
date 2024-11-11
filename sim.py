@@ -4,15 +4,14 @@ from LOB import LimitOrderBook
 from order import Order
 import random
 import utils
-
-TOTAL_ORDERS = 10
+import config
 
 def create_order_sequence() -> List[Order]:
-    n = TOTAL_ORDERS
+    n = config.TOTAL_ORDERS
     orders: List[Order] = []
     timestamp = 1  # Start timestamps from 1
-    bid_range = [1, 2, 3, 4, 5]
-    ask_range = [4, 5, 6, 7, 8]
+    bid_range = list(range(config.BID_RANGE[0], config.BID_RANGE[1]+1))
+    ask_range = list(range(config.ASK_RANGE[0], config.ASK_RANGE[1]+1))
 
     for order_id in range(1, n + 1):
         # Randomly choose side as 'bid' or 'ask'
@@ -30,11 +29,9 @@ def create_order_sequence() -> List[Order]:
         # Increment timestamp for the next order
         timestamp += 1
 
-    for o in orders:
-        print(o)
     return orders
 
-def emulate_loq(orders: List[Order], win) -> List[Order]:
+def emulate_loq(orders: List[Order], win: int) -> List[Order]:
     bids = []
     asks = []
 
@@ -80,11 +77,19 @@ def main():
         lob.add_order(o)
 
     o1 = lob.get_matched_orders_sequence()
-    print("Matched orders1: ", len(o1))
 
     # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
-    reordered_orders = emulate_loq(orders, win=3)
-    # reordered_orders = utils.windowed_shuffle(orders, 10)
+    reordered_orders = emulate_loq(orders, win=int((config.QUEUE_SIZE/100)*config.TOTAL_ORDERS))
+
+    # Just after reordering check how much of the sequence is same
+    reordered_orders_ids = []
+    for o in reordered_orders:
+        reordered_orders_ids.append(o.order_id)
+    orders_ids = []
+    for o in orders:
+        orders_ids.append(o.order_id)
+    l = compare_matched_orders(orders_ids, reordered_orders_ids)
+    print("After reordering, largest common subsequence of RECEIVED orders at ME: ", (100.0*l/len(orders_ids)), "%")
 
     # Feed then reordered sequence to ME and get the output O'
     lob = LimitOrderBook()
@@ -92,18 +97,18 @@ def main():
         lob.add_order(o)
 
     o2 = lob.get_matched_orders_sequence()
+
+    print("Matched orders1: ", len(o1))
     print("Matched orders2: ", len(o2))
 
     # Compare o1 to o2
-    if o1 == o2:
-        print("Exactly the same")
-    else:
-        print("Different matched orders")
-    
-    print(o1)
-    print(o2)
-    # l = compare_matched_orders(o1, o2)
-    # print("Common matched orders: ", (100.0*l/len(o1)), "%")
+    # if o1 == o2:
+    #     print("Exactly the same")
+    # else:
+    #     print("Different matched orders")
+
+    l = compare_matched_orders(o1, o2)
+    print("largest common subsequence of MATCHED orders at ME: ", (100.0*l/len(o1)), "%")
 
 if __name__ == "__main__":
     main()
