@@ -2,3 +2,25 @@
 
 If asks and bid price range only overlap at a single point, then the behavior of LOQ and FIFO is exactly the same in terms of matched orders. (not in terms of received orders)
 
+If they overlap at various points (which means a lot of asks and bids are crossing the midprice by several steps), then the behavior diverges and depends on the queue size. 
+
+bids = 1, 2, 3
+asks = 3, 4, 5
+100% same matched orders
+
+
+
+bids = 1, 2, 3
+asks = 2, 3, 4
+
+queue size = 0 % of all orders
+100% the sequence of matched orders is same across LOQ and FIFO
+
+queue size = 10 % of all orders
+80% to 90% the sequence of matched orders is same across LOQ and FIFO
+
+queue size = 20 % of all orders
+50% to 80% the sequence of matched orders is same across LOQ and FIFO
+
+queue size = 50 % of all orders
+40% the sequence of matched orders is same across LOQ and FIFO
