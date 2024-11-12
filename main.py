@@ -50,11 +50,11 @@ def main():
 
     # Just after reordering check how much of the sequence is same
     reordered_orders_ids = []
-    for o in reordered_orders:
-        reordered_orders_ids.append(o.order_id)
+    for o in reordered_orders: reordered_orders_ids.append(o.order_id)
+    
     orders_ids = []
-    for o in orders:
-        orders_ids.append(o.order_id)
+    for o in orders: orders_ids.append(o.order_id)
+    
     l = compare_matched_orders(orders_ids, reordered_orders_ids)
     print("After reordering, largest common subsequence of RECEIVED orders at ME: ", (100.0*l/len(orders_ids)), "%")
 

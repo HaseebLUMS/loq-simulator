@@ -8,7 +8,7 @@ lob = LimitOrderBook()
 lob.add_order(Order(1, 'bid', 100, 10))
 lob.add_order(Order(2, 'ask', 95, 5))
 lob.add_order(Order(3, 'ask', 105, 8))
-lob.add_order(Order(4, 'bid', 100, 15, datetime(2024, 11, 9, 12, 30)))  # Custom timestamp
+lob.add_order(Order(4, 'bid', 100, 15))
 lob.display_order_book()
 '''
 class LimitOrderBook:

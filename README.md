@@ -1,3 +1,6 @@
+Run `python3 main.py`
+
+
 # Initial Results
 
 If asks and bid price range only overlap at a single point, then the behavior of LOQ and FIFO is exactly the same in terms of matched orders. (not in terms of received orders)
@@ -24,3 +27,14 @@ queue size = 20 % of all orders
 
 queue size = 50 % of all orders
 40% the sequence of matched orders is same across LOQ and FIFO
+
+# TODO
+send repo link to anirudh
+point anirudh to databento APIs/offering
+
+Compare both LOQ+LOB and LOB with repsect the time of order amtching 
+-- Formalize it! Start writing a proof
+
+CCAC, venkat
+
+cmac -> a model for queue position evaluation in lob
