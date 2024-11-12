@@ -17,22 +17,31 @@ bids = 1, 2, 3
 asks = 2, 3, 4
 
 queue size = 0 % of all orders
+
 100% the sequence of matched orders is same across LOQ and FIFO
 
+
 queue size = 10 % of all orders
+
 80% to 90% the sequence of matched orders is same across LOQ and FIFO
 
+
 queue size = 20 % of all orders
+
 50% to 80% the sequence of matched orders is same across LOQ and FIFO
 
+
 queue size = 50 % of all orders
+
 40% the sequence of matched orders is same across LOQ and FIFO
 
 # TODO
 send repo link to anirudh
+
 point anirudh to databento APIs/offering
 
 Compare both LOQ+LOB and LOB with repsect the time of order amtching 
+
 -- Formalize it! Start writing a proof
 
 CCAC, venkat
