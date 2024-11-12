@@ -5,12 +5,14 @@ Run `python3 main.py`
 
 If asks and bid price range only overlap at a single point, then the behavior of LOQ and FIFO is exactly the same in terms of matched orders. (not in terms of received orders)
 
-If they overlap at various points (which means a lot of asks and bids are crossing the midprice by several steps), then the behavior diverges and depends on the queue size. 
 
 bids = 1, 2, 3
 asks = 3, 4, 5
+
 100% same matched orders
 
+
+If they overlap at various points (which means a lot of asks and bids are crossing the midprice by several steps), then the behavior diverges and depends on the queue size. 
 
 
 bids = 1, 2, 3
