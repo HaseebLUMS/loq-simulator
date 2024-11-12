@@ -22,7 +22,7 @@ def create_order_sequence() -> List[Order]:
 
         quantity = 1
 
-        # Create order with incremental timestamp
+        # Create order
         order = Order(order_id=order_id, side=side, price=price, quantity=quantity, timestamp=timestamp)
         orders.append(order)
 
@@ -35,10 +35,10 @@ def compare_matched_orders(o1: List[int], o2: List[int]):
     return utils.find_longest_common_subsequence(o1, o2)
 
 def main():
-    # Create a sequence of orders, containing several prices, and traders
+    # Create a sequence of orders
     orders = create_order_sequence()
 
-    # Feed them to a ME, which maintains an LOB and processes the sequence, and get output o1 denoting which order got matched with what other order
+    # Feed them to a ME, which maintains an LOB and processes the sequence, and get output o1 denoting the matched orders in the sequence they got matched
     lob = LimitOrderBook()
     for o in orders:
         lob.add_order(o)
