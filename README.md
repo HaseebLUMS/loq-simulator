@@ -38,6 +38,15 @@ queue size = 50 % of all orders
 40% the sequence of matched orders is same across LOQ and FIFO
 
 # TODO
+
+More LOQs (e.g., 2 in front of LOB)
+- a sequence, randomly split across two LOQs
+
+- two designs: everythong on fpga, compute scale of exchange
+- increase order throughput (where the bottleneck is)
+- homa (incast)
+- speedex, core wise scalablity
+
 send repo link to anirudh
 
 point anirudh to databento APIs/offering
