@@ -36,10 +36,8 @@ def create_order_sequence() -> List[Order]:
 def compare_matched_orders(o1: List[int], o2: List[int]):
     t1 = {}
     t2 = {}
-    for i, o in enumerate(o1):
-        t1[o] = i
-    for i, o in enumerate(o2):
-        t2[o] = i
+    for i, o in enumerate(o1): t1[o] = i
+    for i, o in enumerate(o2): t2[o] = i
     
     res = {}
     data = []
