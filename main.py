@@ -1,4 +1,6 @@
 from typing import TYPE_CHECKING, List
+
+import numpy as np
 from LOB import LimitOrderBook
 from order import Order
 import random
@@ -32,6 +34,22 @@ def create_order_sequence() -> List[Order]:
     return orders
 
 def compare_matched_orders(o1: List[int], o2: List[int]):
+    t1 = {}
+    t2 = {}
+    for i, o in enumerate(o1): t1[o] = i
+    for i, o in enumerate(o2): t2[o] = i
+    
+    res = {}
+    data = []
+    for o in t1:
+        late = t2[o] - t1[o]
+        res[o] = late
+        data.append(late)
+
+    print("25p Lateness: ", np.percentile(data, 25))
+    print("50p Lateness: ", np.percentile(data, 50))
+    print("90p Lateness: ", np.percentile(data, 90))
+    print("99p Lateness: ", np.percentile(data, 99))
     return utils.find_longest_common_subsequence(o1, o2)
 
 def main():
@@ -55,8 +73,8 @@ def main():
     orders_ids = []
     for o in orders: orders_ids.append(o.order_id)
     
-    l = compare_matched_orders(orders_ids, reordered_orders_ids)
-    print("After reordering, largest common subsequence of RECEIVED orders at ME: ", (100.0*l/len(orders_ids)), "%")
+    # l = compare_matched_orders(orders_ids, reordered_orders_ids)
+    # print("After reordering, largest common subsequence of RECEIVED orders at ME: ", (100.0*l/len(orders_ids)), "%")
 
     # Feed then reordered sequence to ME and get the output o2
     lob = LimitOrderBook()
