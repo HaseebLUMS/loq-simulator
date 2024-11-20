@@ -38,13 +38,14 @@ def compare_matched_orders(o1: List[int], o2: List[int]):
     t2 = {}
     for i, o in enumerate(o1): t1[o] = i
     for i, o in enumerate(o2): t2[o] = i
-    
+
     res = {}
     data = []
     for o in t1:
-        late = t2[o] - t1[o]
-        res[o] = late
-        data.append(late)
+        if o in t2 and o in t1:
+            late = t2[o] - t1[o]
+            res[o] = late
+            data.append(late)
 
     print("25p Lateness: ", np.percentile(data, 25))
     print("50p Lateness: ", np.percentile(data, 50))
@@ -52,29 +53,24 @@ def compare_matched_orders(o1: List[int], o2: List[int]):
     print("99p Lateness: ", np.percentile(data, 99))
     return utils.find_longest_common_subsequence(o1, o2)
 
+def combine_halves(half1: List[Order], half2: List[Order]): return [item for pair in zip(half1, half2) for item in pair]
+
 def main():
     # Create a sequence of orders
     orders = create_order_sequence()
 
     # Feed them to a ME, which maintains an LOB and processes the sequence, and get output o1 denoting the matched orders in the sequence they got matched
     lob = LimitOrderBook()
-    for o in orders:
-        lob.add_order(o)
+    for o in orders: lob.add_order(o)
 
     o1 = lob.get_matched_orders_sequence()
 
+    half1, half2 = utils.create_random_halves(orders)
     # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
-    reordered_orders = LOQ.emulate_loq(orders, win=int((config.QUEUE_SIZE/100)*config.TOTAL_ORDERS))
+    reordered_orders1 = LOQ.emulate_loq(half1, win=int((config.QUEUE_SIZE/100)*config.TOTAL_ORDERS))
+    reordered_orders2 = LOQ.emulate_loq(half2, win=int((config.QUEUE_SIZE/100)*config.TOTAL_ORDERS))
 
-    # Just after reordering check how much of the sequence is same
-    reordered_orders_ids = []
-    for o in reordered_orders: reordered_orders_ids.append(o.order_id)
-    
-    orders_ids = []
-    for o in orders: orders_ids.append(o.order_id)
-    
-    # l = compare_matched_orders(orders_ids, reordered_orders_ids)
-    # print("After reordering, largest common subsequence of RECEIVED orders at ME: ", (100.0*l/len(orders_ids)), "%")
+    reordered_orders = combine_halves(reordered_orders1, reordered_orders2)
 
     # Feed then reordered sequence to ME and get the output o2
     lob = LimitOrderBook()
