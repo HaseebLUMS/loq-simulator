@@ -45,7 +45,7 @@ More LOQs (e.g., 2 in front of LOB)
 - two designs: everythong on fpga, compute scale of exchange
 - increase order throughput (where the bottleneck is)
 - homa (incast)
-- speedex, core wise scalablity
+- core wise scalablity (speedex?)
 
 send repo link to anirudh
 
