@@ -39,6 +39,8 @@ queue size = 50 % of all orders
 
 # TODO
 
+- probably both loqs should be consulted simulatanously
+
 More LOQs (e.g., 2 in front of LOB)
 - a sequence, randomly split across two LOQs
 

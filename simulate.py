@@ -8,6 +8,8 @@ import utils
 import config
 import LOQ
 
+LOGGING = False
+
 def create_order_sequence(n) -> List[Order]:
     orders: List[Order] = []
     timestamp = 1  # Start timestamps from 1
@@ -46,9 +48,11 @@ def compare_matched_orders(o1: List[int], o2: List[int]):
             res[o] = late
             data.append(late)
 
-    print("50p Lateness: ", np.percentile(data, 50))
-    print("90p Lateness: ", np.percentile(data, 90))
-    print("99p Lateness: ", np.percentile(data, 99))
+    if LOGGING:
+        print("50p Lateness: ", np.percentile(data, 50))
+        print("90p Lateness: ", np.percentile(data, 90))
+        print("99p Lateness: ", np.percentile(data, 99))
+
     return data
 
     # return utils.find_longest_common_subsequence(o1, o2)
@@ -56,7 +60,7 @@ def compare_matched_orders(o1: List[int], o2: List[int]):
 def combine_halves(half1: List[Order], half2: List[Order]): return [item for pair in zip(half1, half2) for item in pair]
 
 
-def main(queue_size=None, total_orders=None):
+def simulate(queue_size=None, total_orders=None):
     queue_size = queue_size if queue_size is not None else config.QUEUE_SIZE
     total_orders = total_orders if total_orders is not None else config.TOTAL_ORDERS
 
@@ -80,7 +84,7 @@ def main(queue_size=None, total_orders=None):
     lob = LimitOrderBook()
     for o in reordered_orders:
         lob.add_order(o)
-
+    
     o2 = lob.get_matched_orders_sequence()
 
     return compare_matched_orders(o1, o2)
@@ -101,5 +105,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    LOGGING = True
     # Pass command-line arguments to main
-    main(queue_size=args.queue_size, total_orders=args.total_orders)
+    simulate(queue_size=args.queue_size, total_orders=args.total_orders)
