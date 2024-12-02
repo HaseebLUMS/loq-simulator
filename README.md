@@ -1,4 +1,4 @@
-Run `python3 main.py`
+Run `python3 main.py 10k_2loq.pdf`
 
 
 # Initial Results

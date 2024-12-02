@@ -75,8 +75,8 @@ def simulate(queue_size=None, total_orders=None):
 
     half1, half2 = utils.create_halves(orders)
     # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
-    reordered_orders1 = LOQ.emulate_loq(half1, win=int((queue_size/100)*total_orders))
-    reordered_orders2 = LOQ.emulate_loq(half2, win=int((queue_size/100)*total_orders))
+    reordered_orders1 = LOQ.emulate_loq(half1, win=int((queue_size/100)*len(half1)))
+    reordered_orders2 = LOQ.emulate_loq(half2, win=int((queue_size/100)*len(half2)))
 
     reordered_orders = combine_halves(reordered_orders1, reordered_orders2)
 

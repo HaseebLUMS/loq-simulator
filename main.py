@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from simulate import simulate
@@ -18,6 +19,11 @@ def compute_confidence_intervals(simulate, qs, total_orders, percentages, num_si
     return lower_bound, upper_bound
 
 def main():
+    if (len(sys.argv) < 2):
+        print("Provide output filename e.g., tmp.pdf")
+        exit(1)
+
+    filename = sys.argv[1]
     percentages = list(range(1, 101))
     total_orders = 10_000
     num_simulations = 50  # Number of times to call simulate for confidence intervals
@@ -39,7 +45,7 @@ def main():
     plt.ylabel("CDF")
     plt.legend(loc="best")
     plt.grid(True)
-    plt.savefig(f"figs/{total_orders}_orders.pdf")
+    plt.savefig(f"figs/{filename}")
 
 if __name__ == "__main__":
     main()
