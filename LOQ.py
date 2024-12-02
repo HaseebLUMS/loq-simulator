@@ -29,3 +29,7 @@ def emulate_loq(orders: List[Order], win: int) -> List[Order]:
 
     return reordered_orders
 
+def counter_local_loq_effect(orders: List[Order]) -> List[Order]:
+    # use o.tmp to identify the LOQ index
+    print("TODO: counter_local_loq_effect")
+    return orders

@@ -6,7 +6,7 @@ Having multiple LOQs leads to some unfairness even when asks and bids price rang
 
 LOQ1 has orders with timestamps: 1, 2, 3
 LOQ2 has orders with timestamps: 4, 5, 6
-Now ME shoudl not process orders as they are recieved, all orders from LOQ1 shoudl be processed before any order from the LOQ2. We do not have a protocol for that.  
+Now ME shoudl not process orders as they are recieved, all orders from LOQ1 shoudl be processed before any order from the LOQ2. We do not have a protocol for that.  OR the d_s parameter takes care of it. 
 
 # Initial Results
 

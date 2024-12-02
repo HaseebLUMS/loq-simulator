@@ -94,8 +94,8 @@ def simulate(queue_size=None, total_orders=None):
 
     # Counter network reordering by processing the `reordered_orders` in such a way
     # that ME only processes an order o from LOQ1 if it has received order o with larger ts from LOQ2 or LOQ2 has no orders left
-    
 
+    reordered_orders = LOQ.counter_local_loq_effect(reordered_orders)
 
     # Feed then reordered sequence to ME and get the output o2
     lob = LimitOrderBook()

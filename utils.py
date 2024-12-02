@@ -58,6 +58,7 @@ def create_halves(orders: List[Order], count: int = 2):
     halves = [[] for _ in range(count)]
     ind = 0
     for o in orders:
+        o.tmp = ind
         halves[ind].append(o)
         ind += 1
         ind %= count
