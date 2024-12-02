@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from simulate import simulate
+import config
 
 def compute_confidence_intervals(simulate, qs, total_orders, percentages, num_simulations=100, confidence=95):
     """
@@ -25,7 +26,7 @@ def main():
 
     filename = sys.argv[1]
     percentages = list(range(1, 101))
-    total_orders = 10_000
+    total_orders = config.TOTAL_ORDERS
     num_simulations = 50  # Number of times to call simulate for confidence intervals
 
     for qs in range(5, 30, 5):

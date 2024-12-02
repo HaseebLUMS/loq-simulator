@@ -8,8 +8,6 @@ import utils
 import config
 import LOQ
 
-LOGGING = False
-
 def create_order_sequence(n) -> List[Order]:
     orders: List[Order] = []
     timestamp = 1  # Start timestamps from 1
@@ -48,10 +46,11 @@ def compare_matched_orders(o1: List[int], o2: List[int]):
             res[o] = late
             data.append(late)
 
-    if LOGGING:
+    if config.LOGGING:
         print("50p Lateness: ", np.percentile(data, 50))
         print("90p Lateness: ", np.percentile(data, 90))
         print("99p Lateness: ", np.percentile(data, 99))
+        print("Longest common subsequence: ", utils.find_longest_common_subsequence(o1, o2))
 
     return data
 
@@ -84,11 +83,31 @@ def simulate(queue_size=None, total_orders=None):
 
     o1 = lob.get_matched_orders_sequence()
 
-    halves = utils.create_halves(orders, config.TOTAL_LOQS)
-
+    halves: List[List[Order]] = utils.create_halves(orders, config.TOTAL_LOQS)
+    
     # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
-    reordered_halves = []
+    reordered_halves: List[List[Order]] = []
     for h in halves: reordered_halves.append(LOQ.emulate_loq(h, win=int((queue_size/100)*len(h))))
+
+    # # Checking if they are monotonic
+    # for h in reordered_halves:
+    #     bids = []
+    #     asks = []
+    #     for o in h:
+    #         if o.side == 'bid': bids.append(o)
+    #         else: asks.append(o)
+
+    #     h = bids
+    #     for i in range(1, len(h)):
+    #         if (h[i].timestamp >= h[i-1].timestamp): continue
+    #         print("Halves Not monotonic!")
+    #         exit(1)
+        
+    #     h = asks
+    #     for i in range(1, len(h)):
+    #         if (h[i].timestamp >= h[i-1].timestamp): continue
+    #         print("Halves Not monotonic!")
+    #         exit(1)
 
     reordered_orders = combine_halves(reordered_halves)
 
@@ -122,6 +141,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    LOGGING = True
     # Pass command-line arguments to main
     simulate(queue_size=args.queue_size, total_orders=args.total_orders)

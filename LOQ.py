@@ -1,5 +1,7 @@
+from collections import deque
 import heapq
-from typing import TYPE_CHECKING, List
+from itertools import zip_longest
+from typing import TYPE_CHECKING, Dict, List
 from order import Order
 
 def emulate_loq(orders: List[Order], win: int) -> List[Order]:
@@ -29,7 +31,57 @@ def emulate_loq(orders: List[Order], win: int) -> List[Order]:
 
     return reordered_orders
 
+# TODO: find who has the lowest ask (highest bid) with the lowest tg
 def counter_local_loq_effect(orders: List[Order]) -> List[Order]:
-    # use o.tmp to identify the LOQ index
-    print("TODO: counter_local_loq_effect")
-    return orders
+    per_loq_orders: Dict[int, List[deque[Order]]] = {}
+    for o in orders:
+        if (o.tmp not in per_loq_orders):
+            per_loq_orders[o.tmp] = [deque(), deque()]  # [bids, asks]
+        if o.side == 'bid': per_loq_orders[o.tmp][0].append(o)
+        else: per_loq_orders[o.tmp][1].append(o)
+
+    # Get the highest bid with lowest ts
+    
+    # Get the lowest ask with lowest ts
+
+    res_bids: List[Order] = []
+    while True:
+        max_bid_price = 0
+        min_ts = -1
+        ind = -1
+        for loq_id in per_loq_orders:
+            if len(per_loq_orders[loq_id][0]) == 0: continue
+            if per_loq_orders[loq_id][0][0].price > max_bid_price:
+                max_bid_price = per_loq_orders[loq_id][0][0].price
+                ind = loq_id
+                min_ts = per_loq_orders[loq_id][0][0].timestamp
+
+            if per_loq_orders[loq_id][0][0].price == max_bid_price and per_loq_orders[loq_id][0][0].timestamp < min_ts:
+                min_ts = per_loq_orders[loq_id][0][0].timestamp
+                ind = loq_id
+
+        if ind == -1: break
+        res_bids.append(per_loq_orders[ind][0].popleft())
+
+    res_asks: List[Order] = []
+    while True:
+        min_ask_price = 10**100  # arbitrary large num
+        min_ts = -1
+        ind = -1
+        for loq_id in per_loq_orders:
+            if len(per_loq_orders[loq_id][1]) == 0: continue
+            if per_loq_orders[loq_id][1][0].price < min_ask_price:
+                min_ask_price = per_loq_orders[loq_id][1][0].price
+                ind = loq_id
+                min_ts = per_loq_orders[loq_id][1][0].timestamp
+
+            if per_loq_orders[loq_id][1][0].price == min_ask_price and per_loq_orders[loq_id][1][0].timestamp < min_ts:
+                min_ts = per_loq_orders[loq_id][1][0].timestamp
+                ind = loq_id
+
+        if ind == -1: break
+        res_asks.append(per_loq_orders[ind][1].popleft())
+
+    
+    res_orders: List[Order] = [item for pair in zip_longest(res_bids, res_asks) for item in pair if item is not None]
+    return res_orders
