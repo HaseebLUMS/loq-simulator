@@ -1,5 +1,12 @@
 Run `python3 main.py 10k_2loq.pdf`
 
+# Results Dec 02
+
+Having multiple LOQs leads to some unfairness even when asks and bids price range overlap at a single point. Here is a scenario where it can happen:
+
+LOQ1 has orders with timestamps: 1, 2, 3
+LOQ2 has orders with timestamps: 4, 5, 6
+Now ME shoudl not process orders as they are recieved, all orders from LOQ1 shoudl be processed before any order from the LOQ2. We do not have a protocol for that.  
 
 # Initial Results
 

@@ -54,12 +54,11 @@ def create_random_halves(orders: List[Order]):
             b.append(o)
     return a, b
 
-def create_halves(orders: List[Order]):
-    a = []
-    b = []
-    t = True
+def create_halves(orders: List[Order], count: int = 2):
+    halves = [[] for _ in range(count)]
+    ind = 0
     for o in orders:
-        if t: a.append(o)
-        else: b.append(o)
-        t = not t    
-    return a, b
+        halves[ind].append(o)
+        ind += 1
+        ind %= count
+    return halves

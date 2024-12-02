@@ -57,8 +57,19 @@ def compare_matched_orders(o1: List[int], o2: List[int]):
 
     # return utils.find_longest_common_subsequence(o1, o2)
 
-def combine_halves(half1: List[Order], half2: List[Order]): return [item for pair in zip(half1, half2) for item in pair]
+def combine_halves(reordered_halves: List[List[Order]]):
+    # reverse each list for efficient pop
+    for h in reordered_halves: h.reverse()
 
+    orders = []
+    while True:
+        remaining = False
+        for h in reordered_halves:
+            if (len(h) == 0): continue
+            remaining = True
+            orders.append(h.pop())
+        if remaining == False: break
+    return orders
 
 def simulate(queue_size=None, total_orders=None):
     queue_size = queue_size if queue_size is not None else config.QUEUE_SIZE
@@ -73,12 +84,18 @@ def simulate(queue_size=None, total_orders=None):
 
     o1 = lob.get_matched_orders_sequence()
 
-    half1, half2 = utils.create_halves(orders)
-    # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
-    reordered_orders1 = LOQ.emulate_loq(half1, win=int((queue_size/100)*len(half1)))
-    reordered_orders2 = LOQ.emulate_loq(half2, win=int((queue_size/100)*len(half2)))
+    halves = utils.create_halves(orders, config.TOTAL_LOQS)
 
-    reordered_orders = combine_halves(reordered_orders1, reordered_orders2)
+    # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
+    reordered_halves = []
+    for h in halves: reordered_halves.append(LOQ.emulate_loq(h, win=int((queue_size/100)*len(h))))
+
+    reordered_orders = combine_halves(reordered_halves)
+
+    # Counter network reordering by processing the `reordered_orders` in such a way
+    # that ME only processes an order o from LOQ1 if it has received order o with larger ts from LOQ2 or LOQ2 has no orders left
+    
+
 
     # Feed then reordered sequence to ME and get the output o2
     lob = LimitOrderBook()
