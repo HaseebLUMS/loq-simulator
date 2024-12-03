@@ -87,40 +87,20 @@ def simulate(queue_size=None, total_orders=None):
     
     # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
     reordered_halves: List[List[Order]] = []
-    for h in halves: reordered_halves.append(LOQ.emulate_loq(h, win=int((queue_size/100)*len(h))))
-
-    # # Checking if they are monotonic
-    # for h in reordered_halves:
-    #     bids = []
-    #     asks = []
-    #     for o in h:
-    #         if o.side == 'bid': bids.append(o)
-    #         else: asks.append(o)
-
-    #     h = bids
-    #     for i in range(1, len(h)):
-    #         if (h[i].timestamp >= h[i-1].timestamp): continue
-    #         print("Halves Not monotonic!")
-    #         exit(1)
-        
-    #     h = asks
-    #     for i in range(1, len(h)):
-    #         if (h[i].timestamp >= h[i-1].timestamp): continue
-    #         print("Halves Not monotonic!")
-    #         exit(1)
+    for h in halves: reordered_halves.append(LOQ.emulate_loq_v2(h, win=int((queue_size/100)*len(h))))
 
     reordered_orders = combine_halves(reordered_halves)
 
     # Counter network reordering by processing the `reordered_orders` in such a way
     # that ME only processes an order o from LOQ1 if it has received order o with larger ts from LOQ2 or LOQ2 has no orders left
 
-    reordered_orders = LOQ.counter_local_loq_effect(reordered_orders)
+    reordered_orders = LOQ.counter_local_loq_effect_based_on_ts(reordered_orders)
 
     # Feed then reordered sequence to ME and get the output o2
     lob = LimitOrderBook()
     for o in reordered_orders:
         lob.add_order(o)
-    
+
     o2 = lob.get_matched_orders_sequence()
 
     return compare_matched_orders(o1, o2)

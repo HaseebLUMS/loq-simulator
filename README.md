@@ -1,4 +1,7 @@
 Run `python3 main.py 10k_2loq.pdf`
+# Results Dec 03
+
+A better strategy than round robin is needed and then a merge-sort type protocol is needed to consult multiple queues
 
 # Results Dec 02
 

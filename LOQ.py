@@ -31,8 +31,59 @@ def emulate_loq(orders: List[Order], win: int) -> List[Order]:
 
     return reordered_orders
 
+# Does not do round robin, does lowest timestamp instead
+def emulate_loq_v2(orders: List[Order], win: int) -> List[Order]:
+    bids = []
+    asks = []
+
+    # Fill the queue
+    window = orders[0:win]
+    for order in window:
+        if order.side == 'bid': heapq.heappush(bids, (-order.price, order.timestamp, order))
+        else: heapq.heappush(asks, (order.price, order.timestamp, order))
+
+    reordered_orders = []
+
+    for order in orders[win:]:
+
+        if bids and (not asks or bids[0][1] <= asks[0][1]): reordered_orders.append(heapq.heappop(bids)[2])
+        elif asks: reordered_orders.append(heapq.heappop(asks)[2])
+
+        if order.side == 'bid': heapq.heappush(bids, (-order.price, order.timestamp, order))
+        else: heapq.heappush(asks, (order.price, order.timestamp, order))
+
+    while bids or asks:
+        if bids and (not asks or bids[0][1] <= asks[0][1]): reordered_orders.append(heapq.heappop(bids)[2])
+        elif asks: reordered_orders.append(heapq.heappop(asks)[2])
+
+    return reordered_orders
+
+
+def counter_local_loq_effect_based_on_ts(orders: List[Order]) -> List[Order]:
+    per_loq_orders: Dict[int, deque[Order]] = {}
+    for o in orders:
+        if (o.tmp not in per_loq_orders):
+            per_loq_orders[o.tmp] = deque()
+        per_loq_orders[o.tmp].append(o)
+
+    res = []
+    while True:
+        min_ts = 10*100
+        ind = -1
+        for loq_id in per_loq_orders:
+            if len(per_loq_orders[loq_id]) == 0: continue
+
+            if per_loq_orders[loq_id][0].timestamp < min_ts:
+                min_ts = per_loq_orders[loq_id][0].timestamp
+                ind = loq_id
+
+        if ind == -1: break
+        res.append(per_loq_orders[ind].popleft())
+    return res
+
+
 # TODO: find who has the lowest ask (highest bid) with the lowest tg
-def counter_local_loq_effect(orders: List[Order]) -> List[Order]:
+def counter_local_loq_effect_based_on_price_ts(orders: List[Order]) -> List[Order]:
     per_loq_orders: Dict[int, List[deque[Order]]] = {}
     for o in orders:
         if (o.tmp not in per_loq_orders):

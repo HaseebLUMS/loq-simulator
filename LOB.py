@@ -39,8 +39,8 @@ class LimitOrderBook:
                 ask_order: Order = best_ask[1][0]  # Oldest order at the lowest ask price
                 matched_quantity = min(bid_order.quantity, ask_order.quantity)
 
-                # self.matched.append(bid_order.order_id)
-                self.matched.append(ask_order.order_id)
+                self.matched.append(bid_order.order_id)
+                # self.matched.append(ask_order.order_id)
 
                 # Update order quantities
                 bid_order.quantity -= matched_quantity
