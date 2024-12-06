@@ -68,7 +68,7 @@ def counter_local_loq_effect_based_on_ts(orders: List[Order]) -> List[Order]:
 
     res = []
     while True:
-        min_ts = 10*100
+        min_ts = 10**100
         ind = -1
         for loq_id in per_loq_orders:
             if len(per_loq_orders[loq_id]) == 0: continue
