@@ -40,7 +40,7 @@ class LimitOrderBook:
                 matched_quantity = min(bid_order.quantity, ask_order.quantity)
 
                 self.matched.append(bid_order.order_id)
-                self.matched.append(ask_order.order_id)
+                # self.matched.append(ask_order.order_id)
 
                 # Update order quantities
                 bid_order.quantity -= matched_quantity

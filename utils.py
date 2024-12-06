@@ -43,3 +43,23 @@ def windowed_shuffle(orders: List[Order], win: int=10):
         random.shuffle(window)
         orders[i:i+win] = window
     return orders
+
+def create_random_halves(orders: List[Order]):
+    a = []
+    b = []
+    for o in orders:
+        if random.choice([True, False]):  # Randomly choose a list
+            a.append(o)
+        else:
+            b.append(o)
+    return a, b
+
+def create_halves(orders: List[Order], count: int = 2):
+    halves = [[] for _ in range(count)]
+    ind = 0
+    for o in orders:
+        o.tmp = ind
+        halves[ind].append(o)
+        ind += 1
+        ind %= count
+    return halves

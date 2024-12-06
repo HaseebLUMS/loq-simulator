@@ -1,93 +1,52 @@
-from typing import TYPE_CHECKING, List
-
+import sys
 import numpy as np
-from LOB import LimitOrderBook
-from order import Order
-import random
-import utils
+import matplotlib.pyplot as plt
+from simulate import simulate
 import config
-import LOQ
 
-def create_order_sequence() -> List[Order]:
-    n = config.TOTAL_ORDERS
-    orders: List[Order] = []
-    timestamp = 1  # Start timestamps from 1
-    bid_range = list(range(config.BID_RANGE[0], config.BID_RANGE[1]+1))
-    ask_range = list(range(config.ASK_RANGE[0], config.ASK_RANGE[1]+1))
+def compute_confidence_intervals(simulate, qs, total_orders, percentages, num_simulations=100, confidence=95):
+    """
+    Compute confidence intervals by repeatedly calling `simulate`.
+    """
+    all_percentiles = []
+    for _ in range(num_simulations):
+        data = simulate(qs, total_orders)
+        percentiles = np.percentile(data, percentages)
+        all_percentiles.append(percentiles)
 
-    for order_id in range(1, n + 1):
-        # Randomly choose side as 'bid' or 'ask'
-        side = 'bid' if random.choice([True, False]) else 'ask'
-
-        # Set price based on side
-        price = random.choice(bid_range) if side == 'bid' else random.choice(ask_range)
-
-        quantity = 1
-
-        # Create order
-        order = Order(order_id=order_id, side=side, price=price, quantity=quantity, timestamp=timestamp)
-        orders.append(order)
-
-        # Increment timestamp for the next order
-        timestamp += 1
-
-    return orders
-
-def compare_matched_orders(o1: List[int], o2: List[int]):
-    t1 = {}
-    t2 = {}
-    for i, o in enumerate(o1): t1[o] = i
-    for i, o in enumerate(o2): t2[o] = i
-    
-    res = {}
-    data = []
-    for o in t1:
-        late = t2[o] - t1[o]
-        res[o] = late
-        data.append(late)
-
-    print("25p Lateness: ", np.percentile(data, 25))
-    print("50p Lateness: ", np.percentile(data, 50))
-    print("90p Lateness: ", np.percentile(data, 90))
-    print("99p Lateness: ", np.percentile(data, 99))
-    return utils.find_longest_common_subsequence(o1, o2)
+    all_percentiles = np.array(all_percentiles)
+    lower_bound = np.percentile(all_percentiles, (100 - confidence) / 2, axis=0)
+    upper_bound = np.percentile(all_percentiles, 100 - (100 - confidence) / 2, axis=0)
+    return lower_bound, upper_bound
 
 def main():
-    # Create a sequence of orders
-    orders = create_order_sequence()
+    if (len(sys.argv) < 2):
+        print("Provide output filename e.g., tmp.pdf")
+        exit(1)
 
-    # Feed them to a ME, which maintains an LOB and processes the sequence, and get output o1 denoting the matched orders in the sequence they got matched
-    lob = LimitOrderBook()
-    for o in orders:
-        lob.add_order(o)
+    filename = sys.argv[1]
+    percentages = list(range(1, 101))
+    total_orders = config.TOTAL_ORDERS
+    num_simulations = 50  # Number of times to call simulate for confidence intervals
 
-    o1 = lob.get_matched_orders_sequence()
+    for qs in range(5, 30, 5):
+        # Generate data for the main CDF
+        data = simulate(qs, total_orders)
+        cdf = np.percentile(data, percentages)
 
-    # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
-    reordered_orders = LOQ.emulate_loq(orders, win=int((config.QUEUE_SIZE/100)*config.TOTAL_ORDERS))
+        # Compute confidence intervals using new data from simulate
+        lower, upper = compute_confidence_intervals(simulate, qs, total_orders, percentages, num_simulations)
 
-    # Just after reordering check how much of the sequence is same
-    reordered_orders_ids = []
-    for o in reordered_orders: reordered_orders_ids.append(o.order_id)
-    
-    orders_ids = []
-    for o in orders: orders_ids.append(o.order_id)
-    
-    # l = compare_matched_orders(orders_ids, reordered_orders_ids)
-    # print("After reordering, largest common subsequence of RECEIVED orders at ME: ", (100.0*l/len(orders_ids)), "%")
+        # Plot CDF
+        plt.plot(cdf, percentages, label=f"qs={qs}")
+        # Plot confidence intervals as a shaded region
+        plt.fill_betweenx(percentages, lower, upper, alpha=0.2)
 
-    # Feed then reordered sequence to ME and get the output o2
-    lob = LimitOrderBook()
-    for o in reordered_orders:
-        lob.add_order(o)
-
-    o2 = lob.get_matched_orders_sequence()
-
-    print("Matched orders1: ", len(o1))
-    print("Matched orders2: ", len(o2))
-
-    l = compare_matched_orders(o1, o2)
-    print("largest common subsequence of MATCHED orders at ME: ", (100.0*l/max(len(o1), len(o2))), "%")
+    plt.xlabel("Lateness")
+    plt.ylabel("CDF")
+    plt.legend(loc="best")
+    plt.grid(True)
+    plt.savefig(f"figs/{filename}")
 
 if __name__ == "__main__":
     main()

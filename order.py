@@ -8,6 +8,7 @@ class Order:
         self.price = price
         self.quantity = quantity
         self.timestamp = timestamp or int(datetime.now().timestamp() * 1_000_000)
+        self.tmp = 0  # Scratch space
 
     def __repr__(self):
         return f"Order(id={self.order_id}, side={self.side}, price={self.price}, quantity={self.quantity}, timestamp={self.timestamp})"
