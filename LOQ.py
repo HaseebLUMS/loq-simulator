@@ -59,12 +59,13 @@ def emulate_loq_v2(orders: List[Order], win: int) -> List[Order]:
     return reordered_orders
 
 
-def counter_local_loq_effect_based_on_ts(orders: List[Order]) -> List[Order]:
+# Emulate: ME only processes an order o from LOQ1 if it has received order o with larger ts from LOQ2 or LOQ2 has no orders left
+def combine_orders_from_loqs(orders: List[List[Order]]) -> List[Order]:
     per_loq_orders: Dict[int, deque[Order]] = {}
-    for o in orders:
-        if (o.tmp not in per_loq_orders):
-            per_loq_orders[o.tmp] = deque()
-        per_loq_orders[o.tmp].append(o)
+    for seq in orders:
+        for o in seq:
+            if o.tmp not in per_loq_orders: per_loq_orders[o.tmp] = deque()
+            per_loq_orders[o.tmp].append(o)
 
     res = []
     while True:
@@ -83,6 +84,7 @@ def counter_local_loq_effect_based_on_ts(orders: List[Order]) -> List[Order]:
 
 
 # TODO: find who has the lowest ask (highest bid) with the lowest tg
+# Not Used Now
 def counter_local_loq_effect_based_on_price_ts(orders: List[Order]) -> List[Order]:
     per_loq_orders: Dict[int, List[deque[Order]]] = {}
     for o in orders:

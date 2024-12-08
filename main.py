@@ -29,7 +29,7 @@ def main():
     total_orders = config.TOTAL_ORDERS
     num_simulations = 50  # Number of times to call simulate for confidence intervals
 
-    for qs in range(5, 30, 5):
+    for qs in range(5, 30, 5):  # Queue Size
         # Generate data for the main CDF
         data = simulate(qs, total_orders)
         cdf = np.percentile(data, percentages)

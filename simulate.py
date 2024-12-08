@@ -83,23 +83,19 @@ def simulate(queue_size=None, total_orders=None):
 
     o1 = lob.get_matched_orders_sequence()
 
+    # For feeding to several LOQs
     halves: List[List[Order]] = utils.create_halves(orders, config.TOTAL_LOQS)
     
-    # Also feed the sequence to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
+    # Feed the sequence(s) to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
     reordered_halves: List[List[Order]] = []
     for h in halves: reordered_halves.append(LOQ.emulate_loq_v2(h, win=int((queue_size/100)*len(h))))
 
-    reordered_orders = combine_halves(reordered_halves)
-
-    # Counter network reordering by processing the `reordered_orders` in such a way
-    # that ME only processes an order o from LOQ1 if it has received order o with larger ts from LOQ2 or LOQ2 has no orders left
-
-    reordered_orders = LOQ.counter_local_loq_effect_based_on_ts(reordered_orders)
+    # Combine all the orders into one sequence representing how they arrive at ME 
+    reordered_orders = LOQ.combine_orders_from_loqs(reordered_halves)
 
     # Feed then reordered sequence to ME and get the output o2
     lob = LimitOrderBook()
-    for o in reordered_orders:
-        lob.add_order(o)
+    for o in reordered_orders: lob.add_order(o)
 
     o2 = lob.get_matched_orders_sequence()
 
