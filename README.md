@@ -1,4 +1,7 @@
 Run `python3 main.py tmp.pdf`
+
+https://docs.google.com/document/d/1QJAVf6wlCF_94knkZrR-ONv-CLsmsfepj07lyaxkzhA/edit?usp=sharing
+
 # Results Dec 03
 
 A better strategy than round robin is needed and then a merge-sort type protocol is needed to consult multiple queues
