@@ -3,6 +3,7 @@ import heapq
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Dict, List
 from order import Order
+import config
 
 def emulate_loq(orders: List[Order], win: int) -> List[Order]:
     bids = []
@@ -30,6 +31,47 @@ def emulate_loq(orders: List[Order], win: int) -> List[Order]:
         if asks: reordered_orders.append(heapq.heappop(asks)[2])
 
     return reordered_orders
+
+def process_queues_for_loqv3(orders: List[Order], win: int):
+    queue = []
+    # Fill the queue
+    window = orders[0:win]
+    for order in window: heapq.heappush(queue, (order.timestamp, order))
+
+    reordered_orders = []
+
+    for order in orders[win:]:
+        if queue: reordered_orders.append(heapq.heappop(queue)[1])
+
+        heapq.heappush(queue, (order.timestamp, order))
+
+    while queue: reordered_orders.append(heapq.heappop(queue)[1])
+
+    return reordered_orders
+# Does not do round robin, does lowest timestamp instead
+# + defines an action window, stuff inside the action window is sorted based on ts
+# and the stuff outside of the window is also sorted based on ts
+# => This is as opposed to sorting everything together based on ts
+def emulate_loq_v3(orders: List[Order], win: int) -> List[Order]:
+    # the ones within action window
+    orders1 = []
+
+    # the ones outside of the action window
+    orders2 = []
+
+    for o in orders:
+        if o.side == 'bid':
+            if o.price >= config.MID_PRICE - config.ACTION_WINDOW:
+                orders1.append(o)
+            else: orders2.append(o)
+        else:
+            if o.price <= config.MID_PRICE + config.ACTION_WINDOW:
+                orders1.append(o)
+            else: orders2.append(o)
+
+    res = process_queues_for_loqv3(orders1, win)
+    res += process_queues_for_loqv3(orders2, win)
+    return res
 
 # Does not do round robin, does lowest timestamp instead
 def emulate_loq_v2(orders: List[Order], win: int) -> List[Order]:

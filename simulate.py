@@ -85,10 +85,10 @@ def simulate(queue_size=None, total_orders=None):
 
     # For feeding to several LOQs
     halves: List[List[Order]] = utils.create_halves(orders, config.TOTAL_LOQS)
-    
+
     # Feed the sequence(s) to a LOQ simulator, which reorders the sequence emulating how LOQ would do it
     reordered_halves: List[List[Order]] = []
-    for h in halves: reordered_halves.append(LOQ.emulate_loq_v2(h, win=int((queue_size/100)*len(h))))
+    for h in halves: reordered_halves.append(LOQ.emulate_loq_v3(h, win=int((queue_size/100)*len(h))))
 
     # Combine all the orders into one sequence representing how they arrive at ME 
     reordered_orders = LOQ.combine_orders_from_loqs(reordered_halves)
