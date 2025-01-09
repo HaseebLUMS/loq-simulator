@@ -48,6 +48,8 @@ def process_queues_for_loqv3(orders: List[Order], win: int):
     while queue: reordered_orders.append(heapq.heappop(queue)[1])
 
     return reordered_orders
+
+# Latexy LOQ version
 # Does not do round robin, does lowest timestamp instead
 # + defines an action window, stuff inside the action window is sorted based on ts
 # and the stuff outside of the window is also sorted based on ts
@@ -111,7 +113,7 @@ def combine_orders_from_loqs(orders: List[List[Order]]) -> List[Order]:
 
     res = []
     while True:
-        min_ts = 10**100
+        min_ts = 10**100  # a very large number like INT_MAX
         ind = -1
         for loq_id in per_loq_orders:
             if len(per_loq_orders[loq_id]) == 0: continue

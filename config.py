@@ -25,3 +25,4 @@ assert (MID_PRICE+ACTION_WINDOW == BID_RANGE[1])
 assert (MID_PRICE-ACTION_WINDOW == ASK_RANGE[0])
 assert (MID_PRICE-ACTION_WINDOW >= BID_RANGE[0])
 assert (MID_PRICE+ACTION_WINDOW <= ASK_RANGE[1])
+assert (TOTAL_LOQS%2 == 0)  # there will be `TOTAL_LOQS` in the last level and `TOTAL_LOQS/2` in the second last level
