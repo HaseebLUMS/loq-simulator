@@ -1,4 +1,5 @@
 Run `python3 main.py tmp.pdf`
+Resulting pdf will be stored in figs/ dir.
 
 https://docs.google.com/document/d/1QJAVf6wlCF_94knkZrR-ONv-CLsmsfepj07lyaxkzhA/edit?usp=sharing
 

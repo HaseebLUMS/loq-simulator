@@ -3,6 +3,7 @@ ASK_RANGE = [2,7]
 MID_PRICE = 4
 ACTION_WINDOW = 2
 
+NUM_SIMULATIONS = 1
 
 # For prev loq
 # BID_RANGE = [1,5]

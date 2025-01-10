@@ -41,6 +41,15 @@ def simulate_centralized_engine(orders: List[Order]) -> List[int]:
     for o in orders: lob.add_order(o)
     return lob.get_matched_orders_sequence()
 
+'''
+A tree with depth 3 is used. Bottom-most level (l1) contains config.TOTAL_LOQS proxies. 
+Second last level (l2) contains config.TOTAL_LOQS/2 proxies. Third last (i,e, top) level 
+contains the root/matching engine. 
+
+The above topology is hardcoded as we just need some topo to simulate distributed engine. 
+
+Each proxy runs an LOQ. The orders traverse up the tree. 
+'''
 def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[int]:
 
     # Split the orders into several lists representing the inputs to each proxy in the last layer (l1)
@@ -51,7 +60,7 @@ def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[in
     reordered_orders_l1: List[List[Order]] = []
     for h in input_orders_l1: reordered_orders_l1.append(LOQ.emulate_loq_v3(h, win=int((queue_size/100)*len(h))))
 
-    # Combine every two loqs result into one sequence (representing two proxies feeding their output to a parent proxy)
+    # Combine every two loqs output into one sequence (representing two proxies feeding their output to a parent proxy)
     input_orders_l2: List[List[Order]] = []
     index = 0
     while index < len(reordered_orders_l1):
@@ -99,6 +108,16 @@ def compare_matched_orders(centralized: List[int], distributed: List[int]):
 
     return data
 
+'''
+Simulates centralized and distributed matching engine
+
+Args:
+queue_size denotes the size of queue (of orders) that builds up at each proxy.  queue_size=x means
+a proxy will have a queue of size equal to x% of all the orders 
+(total_orders/# of proxies in the last layer) that a proxy processes. 
+
+total_orders denotes the total orders used for the simulation. 
+'''
 def simulate(queue_size=None, total_orders=None):
     queue_size = queue_size if queue_size is not None else config.QUEUE_SIZE
     total_orders = total_orders if total_orders is not None else config.TOTAL_ORDERS
