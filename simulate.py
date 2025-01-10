@@ -41,6 +41,10 @@ def simulate_centralized_engine(orders: List[Order]) -> List[int]:
     for o in orders: lob.add_order(o)
     return lob.get_matched_orders_sequence()
 
+
+def emulate_network_link(data):
+    # Does nothing which is equivalent to ordered relibable delivery
+    return data
 '''
 A tree with depth 3 is used. Bottom-most level (l1) contains config.TOTAL_LOQS proxies. 
 Second last level (l2) contains config.TOTAL_LOQS/2 proxies. Third last (i,e, top) level 
@@ -60,6 +64,10 @@ def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[in
     reordered_orders_l1: List[List[Order]] = []
     for h in input_orders_l1: reordered_orders_l1.append(LOQ.emulate_loq_v3(h, win=int((queue_size/100)*len(h))))
 
+    # Output of proxies is sent to parent proxies travelling through the network. So we apply network link
+    # emulation to output of each proxy
+    reordered_orders_l1 = list(map(emulate_network_link, reordered_orders_l1))
+
     # Combine every two loqs output into one sequence (representing two proxies feeding their output to a parent proxy)
     input_orders_l2: List[List[Order]] = []
     index = 0
@@ -72,6 +80,8 @@ def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[in
     reordered_orders_l2: List[List[Order]] = []
     for h in input_orders_l2: reordered_orders_l2.append(LOQ.emulate_loq_v3(h, win=int((queue_size/100)*len(h))))
 
+    reordered_orders_l2 = list(map(emulate_network_link, reordered_orders_l2))
+
     # Combine all the orders from the l2 proxues into one sequence representing how they are fed to ME 
     reordered_orders = LOQ.combine_orders_from_loqs(reordered_orders_l2)
 
@@ -80,10 +90,12 @@ def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[in
     for o in reordered_orders: lob.add_order(o)
     return lob.get_matched_orders_sequence()
 
-# Given the sequences representing in what order all the trading orders got matched, 
-# it checks whether the orders in `distributed` were late (and by how much).
-# If an order was the i-th order to get matched in the centralized version and it was
-# j-th order to get matched in the distributed version, then the lateness of this order is |j-i|
+'''
+Given the sequences representing in what order all the trading orders got matched, 
+it checks whether the orders in `distributed` were late (and by how much).
+If an order was the i-th order to get matched in the centralized version and it was
+j-th order to get matched in the distributed version, then the lateness of this order is |j-i|
+'''
 def compare_matched_orders(centralized: List[int], distributed: List[int]):
     t1 = {}
     t2 = {}
@@ -143,5 +155,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Pass command-line arguments to main
     simulate(queue_size=args.queue_size, total_orders=args.total_orders)

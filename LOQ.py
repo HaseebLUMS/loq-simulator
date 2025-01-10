@@ -49,7 +49,7 @@ def process_queues_for_loqv3(orders: List[Order], win: int):
 
     return reordered_orders
 
-# Latexy LOQ version
+# Latest LOQ version
 # Does not do round robin, does lowest timestamp instead
 # + defines an action window, stuff inside the action window is sorted based on ts
 # and the stuff outside of the window is also sorted based on ts
