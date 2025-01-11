@@ -11,6 +11,7 @@ LOQ_VERSION = 3  # 3 is the latest version
 NUM_SIMULATIONS = 1
 TOTAL_ORDERS = 10_000
 LOGGING = False
+NETWORK_REORDERING = False
 
 ##### Just verifying some configs ##########
 assert len(BID_RANGE) == 2

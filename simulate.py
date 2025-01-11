@@ -51,10 +51,19 @@ def simulate_centralized_engine(orders: List[Order]) -> List[int]:
     for o in orders: lob.add_order(o)
     return lob.get_matched_orders_sequence()
 
+def emulate_network_link(stream: List[Order]):
+    if config.NETWORK_REORDERING:
+        REORDERING_FACTOR = 100
+        for i in range(len(stream)):
+            start = i
+            end = min(i + REORDERING_FACTOR, len(stream))
+            
+            sub_window = stream[start:end]
+            random.shuffle(sub_window)
+            
+            stream[start:end] = sub_window
+    return stream
 
-def emulate_network_link(data):
-
-    return data
 '''
 A tree with depth 3 is used. Bottom-most level (l1) contains config.TOTAL_LOQS proxies. 
 Second last level (l2) contains config.TOTAL_LOQS/2 proxies. Third last (i,e, top) level 
