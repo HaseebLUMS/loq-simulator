@@ -8,6 +8,16 @@ import utils
 import config
 import LOQ
 
+########################## Configuring LOQ version ##########################
+LOQ_EMULATION_MAP = {
+    1: LOQ.emulate_loq,
+    2: LOQ.emulate_loq_v2,
+    3: LOQ.emulate_loq_v3  # Default version
+}
+LOQ_EMULATION = LOQ_EMULATION_MAP.get(config.LOQ_VERSION, LOQ.emulate_loq_v3)
+##########################            End            ##########################
+
+
 # Create a sequence of trading orders
 def create_order_sequence(n) -> List[Order]:
     orders: List[Order] = []
@@ -43,7 +53,7 @@ def simulate_centralized_engine(orders: List[Order]) -> List[int]:
 
 
 def emulate_network_link(data):
-    # Does nothing which is equivalent to ordered relibable delivery
+
     return data
 '''
 A tree with depth 3 is used. Bottom-most level (l1) contains config.TOTAL_LOQS proxies. 
@@ -62,7 +72,7 @@ def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[in
     # Feed the sequence(s) to an LOQ emulater, which reorders the sequence emulating 
     # how an LOQ at a proxy would do it. Each list in reordered_orders_l1 represents the output from a proxy
     reordered_orders_l1: List[List[Order]] = []
-    for h in input_orders_l1: reordered_orders_l1.append(LOQ.emulate_loq_v3(h, win=int((queue_size/100)*len(h))))
+    for h in input_orders_l1: reordered_orders_l1.append(LOQ_EMULATION(h, win=int((queue_size/100)*len(h))))
 
     # Output of proxies is sent to parent proxies travelling through the network. So we apply network link
     # emulation to output of each proxy
@@ -78,11 +88,11 @@ def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[in
 
     # Do the same with input_orders_l2 as we did with input_orders_l1
     reordered_orders_l2: List[List[Order]] = []
-    for h in input_orders_l2: reordered_orders_l2.append(LOQ.emulate_loq_v3(h, win=int((queue_size/100)*len(h))))
+    for h in input_orders_l2: reordered_orders_l2.append(LOQ_EMULATION(h, win=int((queue_size/100)*len(h))))
 
     reordered_orders_l2 = list(map(emulate_network_link, reordered_orders_l2))
 
-    # Combine all the orders from the l2 proxues into one sequence representing how they are fed to ME 
+    # Combine all the orders from the l2 proxies into one sequence representing how they are fed to ME
     reordered_orders = LOQ.combine_orders_from_loqs(reordered_orders_l2)
 
     # Feed then reordered sequence to ME and get the output
