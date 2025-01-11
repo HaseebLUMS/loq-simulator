@@ -27,11 +27,11 @@ def main():
     filename = sys.argv[1]
     percentages = list(range(1, 101))
     total_orders = config.TOTAL_ORDERS
-    num_simulations = 50  # Number of times to call simulate for confidence intervals
+    num_simulations = config.NUM_SIMULATIONS  # Number of times to call simulate, for confidence intervals
 
-    for qs in range(5, 30, 5):  # Queue Size
+    for qs in range(5, 30, 5):  # Trying several Queue Sizes
         # Generate data for the main CDF
-        data = simulate(qs, total_orders)
+        data = simulate(qs, total_orders)  # The main simulation code
         cdf = np.percentile(data, percentages)
 
         # Compute confidence intervals using new data from simulate
@@ -46,6 +46,7 @@ def main():
     plt.ylabel("CDF")
     plt.legend(loc="best")
     plt.grid(True)
+    # plt.show()
     plt.savefig(f"figs/{filename}")
 
 if __name__ == "__main__":

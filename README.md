@@ -1,6 +1,13 @@
 Run `python3 main.py tmp.pdf`
+Resulting pdf will be stored in figs/ dir.
+
+Lateness of an order o is defined as following:
+If ME without LOQ generates an output sequence of matched orders and o has an index i, and then ME with 
+LOQ generates an output sequence where o has index j then lateness of o is equal to abs(j-i). Lateness of 
+0 is required for correctness (for distributed ME (i.e., with LOQ) to be equivalent to centralized ME). 
 
 https://docs.google.com/document/d/1QJAVf6wlCF_94knkZrR-ONv-CLsmsfepj07lyaxkzhA/edit?usp=sharing
+
 
 # Results Dec 03
 

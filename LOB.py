@@ -72,6 +72,7 @@ class LimitOrderBook:
                 print(order)
         print("")
 
+    '''Get the order ids of all the bids that got matched, in the order they got matched'''
     def get_matched_orders_sequence(self) -> List[int]:
         return self.matched
 
