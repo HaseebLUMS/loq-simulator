@@ -40,14 +40,15 @@ def main():
         # Plot CDF
         plt.plot(cdf, percentages, label=f"qs={qs}")
         # Plot confidence intervals as a shaded region
-        plt.fill_betweenx(percentages, lower, upper, alpha=0.2)
+        if lower is not None:
+            plt.fill_betweenx(percentages, lower, upper, alpha=0.2)
 
     plt.xlabel("Lateness")
     plt.ylabel("CDF")
     plt.legend(loc="best")
     plt.grid(True)
-    # plt.show()
-    plt.savefig(f"figs/{filename}")
+    plt.show()
+    # plt.savefig(f"figs/{filename}")
 
 if __name__ == "__main__":
     main()

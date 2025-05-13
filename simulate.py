@@ -1,3 +1,4 @@
+import copy
 from typing import List
 import argparse
 import numpy as np
@@ -10,45 +11,62 @@ import LOQ
 
 ########################## Configuring LOQ version ##########################
 LOQ_EMULATION_MAP = {
-    1: LOQ.emulate_loq,
-    2: LOQ.emulate_loq_v2,
-    3: LOQ.emulate_loq_v3  # Default version
+    3: LOQ.emulate_loq_v3,  # loq w/o mid-price in tuple
+    4: LOQ.emulate_loq_v4  # low w mid-price in tuple
 }
 LOQ_EMULATION = LOQ_EMULATION_MAP.get(config.LOQ_VERSION, LOQ.emulate_loq_v3)
 ##########################            End            ##########################
 
 
-# Create a sequence of trading orders
-def create_order_sequence(n) -> List[Order]:
-    orders: List[Order] = []
-    timestamp = 1  # Start timestamps from 1
+# Create m sequence of trading orders, each sequence has n orders
+def create_order_sequences(n: int, m: int) -> List[List[Order]]:
     bid_range = list(range(config.BID_RANGE[0], config.BID_RANGE[1]+1))
     ask_range = list(range(config.ASK_RANGE[0], config.ASK_RANGE[1]+1))
 
-    for order_id in range(1, n + 1):
-        # Randomly choose side as 'bid' or 'ask'
-        side = 'bid' if random.choice([True, False]) else 'ask'
+    sequences: List[List[Order]] = []
 
-        # Set price based on side
-        price = random.choice(bid_range) if side == 'bid' else random.choice(ask_range)
+    for client in range(0, m):
+        timestamp = 1  # Start timestamps from 1
+        orders: List[Order] = []
+        for order_id in range(1, n + 1):
+            # Randomly choose side as 'bid' or 'ask'
+            side = 'bid' if random.choice([True, False]) else 'ask'
 
-        quantity = 1
+            # Set price based on side
+            price = random.choice(bid_range) if side == 'bid' else random.choice(ask_range)
 
-        # Create order
-        order = Order(order_id=order_id, side=side, price=price, quantity=quantity, timestamp=timestamp)
-        orders.append(order)
+            quantity = 1
 
-        # Increment timestamp for the next order
-        timestamp += 1
+            # Create order
+            order = Order(
+                order_id=(client << 32) | order_id,
+                side=side,
+                price=price,
+                quantity=quantity,
+                timestamp=timestamp,
+                tmp=client,
+                I_m=0)
+            orders.append(order)
 
-    return orders
+            # Increment timestamp for the next order
+            timestamp += 1
 
-def simulate_centralized_engine(orders: List[Order]) -> List[int]:
-    # Feed orders to a ME, which maintains an LOB and processes the sequence, 
-    # and get output denoting the matched orders (in the order they got matched)
+        sequences.append(orders)
+    return sequences
 
+def simulate_centralized_engine(orders: List[List[Order]]) -> List[int]:
+    input_orders_l1: List[List[Order]] = copy.deepcopy(orders)
+    reordered_orders_l1 = list(map(emulate_network_link, input_orders_l1))
+    input_orders_l2: List[List[Order]] = []
+    index = 0
+    while index < len(reordered_orders_l1):
+        input_orders_l2.append(LOQ.combine_orders_from_downstreams(
+            [reordered_orders_l1[index], reordered_orders_l1[index+1]]))
+        index += 2
+    reordered_orders_l2 = list(map(emulate_network_link, input_orders_l2))
+    reordered_orders = LOQ.combine_orders_from_downstreams(reordered_orders_l2)
     lob = LimitOrderBook()
-    for o in orders: lob.add_order(o)
+    for o in reordered_orders: lob.add_order(o)
     return lob.get_matched_orders_sequence()
 
 def emulate_network_link(stream: List[Order]):
@@ -73,10 +91,8 @@ The above topology is hardcoded as we just need some topo to simulate distribute
 
 Each proxy runs an LOQ. The orders traverse up the tree. 
 '''
-def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[int]:
-
-    # Split the orders into several lists representing the inputs to each proxy in the last layer (l1)
-    input_orders_l1: List[List[Order]] = utils.create_halves(orders, config.TOTAL_LOQS)
+def simulate_distributed_engine(orders: List[List[Order]], queue_size: int) -> List[int]:
+    input_orders_l1: List[List[Order]] = copy.deepcopy(orders)
 
     # Feed the sequence(s) to an LOQ emulater, which reorders the sequence emulating 
     # how an LOQ at a proxy would do it. Each list in reordered_orders_l1 represents the output from a proxy
@@ -91,7 +107,7 @@ def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[in
     input_orders_l2: List[List[Order]] = []
     index = 0
     while index < len(reordered_orders_l1):
-        input_orders_l2.append(LOQ.combine_orders_from_loqs(
+        input_orders_l2.append(LOQ.combine_orders_from_downstreams(
             [reordered_orders_l1[index], reordered_orders_l1[index+1]]))
         index += 2
 
@@ -102,7 +118,7 @@ def simulate_distributed_engine(orders: List[Order], queue_size: int) -> List[in
     reordered_orders_l2 = list(map(emulate_network_link, reordered_orders_l2))
 
     # Combine all the orders from the l2 proxies into one sequence representing how they are fed to ME
-    reordered_orders = LOQ.combine_orders_from_loqs(reordered_orders_l2)
+    reordered_orders = LOQ.combine_orders_from_downstreams(reordered_orders_l2)
 
     # Feed then reordered sequence to ME and get the output
     lob = LimitOrderBook()
@@ -153,9 +169,9 @@ def simulate(queue_size=None, total_orders=None):
     queue_size = queue_size if queue_size is not None else config.QUEUE_SIZE
     total_orders = total_orders if total_orders is not None else config.TOTAL_ORDERS
 
-    orders = create_order_sequence(total_orders)
-    centralized_output = simulate_centralized_engine(orders)
-    distributed_output = simulate_distributed_engine(orders, queue_size)
+    orders_sequences = create_order_sequences(total_orders, config.TOTAL_LOQS)
+    centralized_output = simulate_centralized_engine(orders_sequences)
+    distributed_output = simulate_distributed_engine(orders_sequences, queue_size)
 
     return compare_matched_orders(centralized_output, distributed_output)
 

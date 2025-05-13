@@ -5,11 +5,15 @@ MID_PRICE = 4
 ACTION_WINDOW = 2
 QUEUE_SIZE = 10  # as percentage of all the orders, 50 denotes 50% of the orders are queued at a time. Overwritten in main.py
 TOTAL_LOQS = 10
-LOQ_VERSION = 3  # 3 is the latest version
+
+# 3
+
+LOQ_VERSION = 4  # 3 is the latest version
 
 # Experiment specific
 NUM_SIMULATIONS = 1
-TOTAL_ORDERS = 10_000
+TOTAL_ORDERS = 1000
+# TOTAL_ORDERS = 10_000
 LOGGING = False
 NETWORK_REORDERING = False  # As we use TCP, so it should stay False
 
