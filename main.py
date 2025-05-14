@@ -36,7 +36,7 @@ def main():
     percentages = list(range(1, 101))
     total_orders = config.TOTAL_ORDERS
     num_simulations = config.NUM_SIMULATIONS  # Number of times to call simulate, for confidence intervals
-    loss_rates = [0.0001, 0.0005, 0.001, 0.005]
+    loss_rates = [0, 0.0001, 0.0005, 0.001, 0.005]
 
     for qs in range(100, 101):  # Trying several Queue Sizes
         for lr in loss_rates:
@@ -64,9 +64,12 @@ def main():
     plt.xlabel("Lateness")
     plt.ylabel("CDF")
     plt.legend(loc="best")
-    # plt.grid(True)
-    # plt.show()
-    plt.savefig(f"figs/{filename}.pdf")
+    plt.grid(True)
+    ax = plt.gca()
+    # Set outer box (spines) to gray
+    for spine in ax.spines.values(): spine.set_edgecolor('lightblue')
+    plt.tight_layout()
+    plt.savefig(f"figs/{filename}.pdf", bbox_inches='tight')
 
 if __name__ == "__main__":
     main()
