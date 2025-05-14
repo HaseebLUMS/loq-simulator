@@ -19,6 +19,10 @@ class LimitOrderBook:
         self.matched = []
         self.inserted = []
 
+        # everyone's portfolio
+        self.sell_records = {}  # client id : profit
+        self.buy_records = {}  # client id : profit
+
     def add_order(self, order: Order):
         """Add a new order to the LOB at the correct price level."""
         self.inserted.append(order.order_id)
@@ -47,6 +51,11 @@ class LimitOrderBook:
                 # Update order quantities
                 bid_order.quantity -= matched_quantity
                 ask_order.quantity -= matched_quantity
+
+                if bid_order.client not in self.buy_records: self.buy_records[bid_order.client] = 0
+                if ask_order.client not in self.sell_records: self.sell_records[ask_order.client] = 0
+                self.buy_records[bid_order.client] += 1
+                self.sell_records[ask_order.client] += 1
 
                 # Remove orders that have been completely matched
                 if bid_order.quantity == 0:

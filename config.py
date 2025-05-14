@@ -9,10 +9,10 @@ TOTAL_LOQS = 100
 # 3
 
 LOQ_VERSION = 4  # 3 is the latest version
-LOSS_RATE = 0.05 # * 100 percent, so 0.05 means 5 percent
+LOSS_RATE = 0.5 # * 100 percent, so 0.05 means 5 percent
 
 # Experiment specific
-NUM_SIMULATIONS = 1
+NUM_SIMULATIONS = 10
 TOTAL_ORDERS = 1000
 
 LOGGING = True

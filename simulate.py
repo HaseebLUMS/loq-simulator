@@ -38,7 +38,7 @@ def simulate_centralized_engine(orders: List[List[Order]]) -> List[int]:
     lob = LimitOrderBook()
     for o in reordered_orders:
         lob.add_order(o)
-    return lob.get_matched_orders_sequence(), lob.get_inserted_orders_sequence()
+    return lob.get_matched_orders_sequence(), lob.sell_records, lob.buy_records
 
 def emulate_network_link(stream: List[Order]):
     if config.NETWORK_REORDERING:
@@ -101,7 +101,7 @@ def simulate_distributed_engine(orders: List[List[Order]], queue_size: int) -> L
     lob = LimitOrderBook()
     for o in reordered_orders:
         lob.add_order(o)
-    return lob.get_matched_orders_sequence(), lob.get_inserted_orders_sequence()
+    return lob.get_matched_orders_sequence(), lob.sell_records, lob.buy_records
     # return lob.get_inserted_orders_sequence()
 
 '''
@@ -123,18 +123,27 @@ def compare_matched_orders(centralized: List[str], distributed: List[str]):
         if o in t2:
             late = abs(t2[o] - t1[o])
         else:
-            late = 1000  # just a large penalty if o is not in t2
+            late = 50  # just a large penalty if o is not in t2
 
         res[o] = late
         data.append(late)
 
     if config.LOGGING:
         print("50p Lateness: ", np.percentile(data, 50))
-        print("90p Lateness: ", np.percentile(data, 90))
-        print("99p Lateness: ", np.percentile(data, 99))
-        print("99.99p Lateness: ", np.percentile(data, 99.99))
+        # print("90p Lateness: ", np.percentile(data, 90))
+        # print("99p Lateness: ", np.percentile(data, 99))
+        # print("99.99p Lateness: ", np.percentile(data, 99.99))
 
     return data
+
+def compare_records(c, d):
+    result = {}
+    all_clients = set(c.keys()).union(d.keys())
+    for client in all_clients:
+        profit_c = c.get(client, 0)
+        profit_d = d.get(client, 0)
+        result[client] = abs(profit_c - profit_d)
+    return result
 
 '''
 Simulates centralized and distributed matching engine
@@ -145,19 +154,21 @@ a proxy will have a queue of size equal to x% of all the orders
 (total_orders/# of proxies in the last layer) that a proxy processes. 
 
 total_orders denotes the total orders used for the simulation. 
+
+return: lateness data, sell profit difference per client, buy profit dif...
 '''
 def simulate(queue_size=None, total_orders=None):
     queue_size = queue_size if queue_size is not None else config.QUEUE_SIZE
     total_orders = total_orders if total_orders is not None else config.TOTAL_ORDERS
 
     orders_sequences = order.create_order_sequences(total_orders, config.TOTAL_LOQS)
-    c_matched, c_inserted = simulate_centralized_engine(orders_sequences)
-    d_matched, d_inserted = simulate_distributed_engine(orders_sequences, queue_size)
+    c_matched, c_sell_records, c_buy_records = simulate_centralized_engine(orders_sequences)
+    d_matched, d_sell_records, d_buy_records = simulate_distributed_engine(orders_sequences, queue_size)
 
-    print("Inserted:")
-    compare_matched_orders(c_inserted, d_inserted)
-    print("Matched")
-    return compare_matched_orders(c_matched, d_matched)
+    sells = compare_records(c_sell_records, d_sell_records)
+    buys = compare_records(c_buy_records, d_buy_records)
+
+    return compare_matched_orders(c_matched, d_matched), sells, buys
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process some orders.")

@@ -29,7 +29,7 @@ class Order:
 
 def simulate_loss(rate) -> int:
     '''with probability `rate`, it returns 1 i.e., drop. otherwise 0'''
-    assert 0.0 <= rate <= 1.0
+    # assert 0.0 <= rate <= 1.0
     return 1 if random.random() < rate else 0
 
 # Create m sequence of trading orders, each sequence has n orders
