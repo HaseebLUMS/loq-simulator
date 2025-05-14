@@ -8,6 +8,11 @@ LOQ generates an output sequence where o has index j then lateness of o is equal
 
 https://docs.google.com/document/d/1QJAVf6wlCF_94knkZrR-ONv-CLsmsfepj07lyaxkzhA/edit?usp=sharing
 
+# Results May 13
+
+Sequencer bug resolved (o.tmp should be set appropriately)
+now latest loq (v4) works fine and loss rate leads to some unfairness
+the architecture of tree should matter for loss rate as well
 
 # Results Dec 03
 

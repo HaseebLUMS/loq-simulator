@@ -17,9 +17,11 @@ class LimitOrderBook:
         self.bid_orders = SortedDict(lambda x: -x)  # Highest price first for bids
         self.ask_orders = SortedDict()  # Lowest price first for asks
         self.matched = []
+        self.inserted = []
 
     def add_order(self, order: Order):
         """Add a new order to the LOB at the correct price level."""
+        self.inserted.append(order.order_id)
         order_book = self.bid_orders if order.side == 'bid' else self.ask_orders
         if order.price not in order_book:
             order_book[order.price] = SortedList()
@@ -73,8 +75,12 @@ class LimitOrderBook:
         print("")
 
     '''Get the order ids of all the bids that got matched, in the order they got matched'''
-    def get_matched_orders_sequence(self) -> List[int]:
+    def get_matched_orders_sequence(self) -> List[str]:
         return self.matched
+    
+    '''Get the order ids in the insertion order'''
+    def get_inserted_orders_sequence(self) -> List[str]:
+        return self.inserted
 
 # lob = LimitOrderBook()
 # lob.add_order(Order(1, 'bid', 100, 10))

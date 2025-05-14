@@ -1,20 +1,21 @@
 # LOQ specific configs
-BID_RANGE = [1,6]
-ASK_RANGE = [2,7]
+BID_RANGE = [1,5]
+ASK_RANGE = [3,7]
 MID_PRICE = 4
-ACTION_WINDOW = 2
+ACTION_WINDOW = 1
 QUEUE_SIZE = 10  # as percentage of all the orders, 50 denotes 50% of the orders are queued at a time. Overwritten in main.py
-TOTAL_LOQS = 10
+TOTAL_LOQS = 100
 
 # 3
 
 LOQ_VERSION = 4  # 3 is the latest version
+LOSS_RATE = 0.05 # * 100 percent, so 0.05 means 5 percent
 
 # Experiment specific
 NUM_SIMULATIONS = 1
 TOTAL_ORDERS = 1000
-# TOTAL_ORDERS = 10_000
-LOGGING = False
+
+LOGGING = True
 NETWORK_REORDERING = False  # As we use TCP, so it should stay False
 
 ##### Just verifying some configs ##########

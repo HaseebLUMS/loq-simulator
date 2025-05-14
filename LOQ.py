@@ -1,6 +1,6 @@
 from collections import deque
 import heapq
-from itertools import zip_longest
+from itertools import groupby, zip_longest
 from typing import TYPE_CHECKING, Dict, List
 from order import Order
 import config
@@ -9,39 +9,44 @@ def process_queues_for_loqv3(orders: List[Order], win: int):
     queue = []
     # Fill the queue
     window = orders[0:win]
-    for order in window: heapq.heappush(queue, (order.timestamp, order.tmp, order))
+    for order in window: heapq.heappush(queue, (order.timestamp, order.client, order))
 
     reordered_orders = []
 
     for order in orders[win:]:
         if queue: reordered_orders.append(heapq.heappop(queue)[2])
 
-        heapq.heappush(queue, (order.timestamp, order.tmp, order))
+        heapq.heappush(queue, (order.timestamp, order.client, order))
 
     while queue: reordered_orders.append(heapq.heappop(queue)[2])
 
     return reordered_orders
 
+def criticality(o: Order):
+    '''returns 0 if critical, 1 o.w.'''
+    if o.side == 'bid':
+        if o.price >= config.MID_PRICE - config.ACTION_WINDOW: return 0  # yes critical
+        else: return 1
+    else:
+        if o.price <= config.MID_PRICE + config.ACTION_WINDOW: return 0
+        else: return 1
+
 # LOQ with action window, also accounting mid-price in prioritization tuple
 def emulate_loq_v4(orders: List[Order], win: int) -> List[Order]:
-    res: List[Order] = []
+    queue = []
 
-    orders_with_same_I_m: List[Order] = []
-    for o in orders:
-        if (len(orders_with_same_I_m) == 0):
-            orders_with_same_I_m.append(o)
-        elif (o.I_m == orders_with_same_I_m[-1].I_m):
-            orders_with_same_I_m.append(o)
-        else:
-            tmp_res = emulate_loq_v3(orders_with_same_I_m, win)
-            for elem in tmp_res: res.append(elem)
-            orders_with_same_I_m = [o]
+    window = orders[0:win]
+    for order in window:
+        heapq.heappush(queue, (order.I_m, criticality(order), order.timestamp, order.client, order))
 
-    if (len(orders_with_same_I_m)):
-        tmp_res = emulate_loq_v3(orders_with_same_I_m, win)
-        for elem in tmp_res: res.append(elem)
+    reordered_orders = []
 
-    return res
+    for order in orders[win:]:
+        if queue: reordered_orders.append(heapq.heappop(queue)[-1])
+        heapq.heappush(queue, (order.I_m, criticality(order), order.timestamp, order.client, order))
+
+    while queue: reordered_orders.append(heapq.heappop(queue)[-1])
+    return reordered_orders
 
 # LOQ with action window, not accounting mid-price in prioritization tuple
 def emulate_loq_v3(orders: List[Order], win: int) -> List[Order]:
@@ -68,27 +73,28 @@ def emulate_loq_v3(orders: List[Order], win: int) -> List[Order]:
 # Emulate: ME only processes an order o from P1 if it has received order o with larger ts from P2 or P2 has no orders left
 def combine_orders_from_downstreams(orders: List[List[Order]]) -> List[Order]:
     per_q_orders: Dict[int, deque[Order]] = {}
-    for seq in orders:
+    for index, seq in enumerate(orders):
         for o in seq:
+            o.tmp = index
             if o.tmp not in per_q_orders: per_q_orders[o.tmp] = deque()
             per_q_orders[o.tmp].append(o)
 
     res = []
     while True:
         min_ts = 10**100  # a very large number like INT_MAX
-        min_tmp = 10**100
+        min_client = 10**100
         ind = -1
         for loq_id in per_q_orders:
             if len(per_q_orders[loq_id]) == 0: continue
 
             if per_q_orders[loq_id][0].timestamp == min_ts:
-                if per_q_orders[loq_id][0].tmp < min_tmp:
+                if per_q_orders[loq_id][0].client < min_client:
                     min_ts = per_q_orders[loq_id][0].timestamp
-                    min_tmp = per_q_orders[loq_id][0].tmp
+                    min_client = per_q_orders[loq_id][0].client
                     ind = loq_id
             elif per_q_orders[loq_id][0].timestamp < min_ts:
                 min_ts = per_q_orders[loq_id][0].timestamp
-                min_tmp = per_q_orders[loq_id][0].tmp
+                min_client = per_q_orders[loq_id][0].client
                 ind = loq_id
 
         if ind == -1: break

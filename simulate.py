@@ -3,6 +3,7 @@ from typing import List
 import argparse
 import numpy as np
 from LOB import LimitOrderBook
+import order
 from order import Order
 import random
 import utils
@@ -14,60 +15,30 @@ LOQ_EMULATION_MAP = {
     3: LOQ.emulate_loq_v3,  # loq w/o mid-price in tuple
     4: LOQ.emulate_loq_v4  # low w mid-price in tuple
 }
-LOQ_EMULATION = LOQ_EMULATION_MAP.get(config.LOQ_VERSION, LOQ.emulate_loq_v3)
+LOQ_EMULATION = LOQ_EMULATION_MAP.get(config.LOQ_VERSION, LOQ.emulate_loq_v4)
 ##########################            End            ##########################
-
-
-# Create m sequence of trading orders, each sequence has n orders
-def create_order_sequences(n: int, m: int) -> List[List[Order]]:
-    bid_range = list(range(config.BID_RANGE[0], config.BID_RANGE[1]+1))
-    ask_range = list(range(config.ASK_RANGE[0], config.ASK_RANGE[1]+1))
-
-    sequences: List[List[Order]] = []
-
-    for client in range(0, m):
-        timestamp = 1  # Start timestamps from 1
-        orders: List[Order] = []
-        for order_id in range(1, n + 1):
-            # Randomly choose side as 'bid' or 'ask'
-            side = 'bid' if random.choice([True, False]) else 'ask'
-
-            # Set price based on side
-            price = random.choice(bid_range) if side == 'bid' else random.choice(ask_range)
-
-            quantity = 1
-
-            # Create order
-            order = Order(
-                order_id=(client << 32) | order_id,
-                side=side,
-                price=price,
-                quantity=quantity,
-                timestamp=timestamp,
-                tmp=client,
-                I_m=0)
-            orders.append(order)
-
-            # Increment timestamp for the next order
-            timestamp += 1
-
-        sequences.append(orders)
-    return sequences
 
 def simulate_centralized_engine(orders: List[List[Order]]) -> List[int]:
     input_orders_l1: List[List[Order]] = copy.deepcopy(orders)
     reordered_orders_l1 = list(map(emulate_network_link, input_orders_l1))
+    # input_orders_l2: List[List[Order]] = []
+    # index = 0
+    # while index < len(reordered_orders_l1):
+    #     input_orders_l2.append(LOQ.combine_orders_from_downstreams(
+    #         [reordered_orders_l1[index], reordered_orders_l1[index+1]]))
+    #     index += 2
+    
     input_orders_l2: List[List[Order]] = []
-    index = 0
-    while index < len(reordered_orders_l1):
-        input_orders_l2.append(LOQ.combine_orders_from_downstreams(
-            [reordered_orders_l1[index], reordered_orders_l1[index+1]]))
-        index += 2
+    total_l1 = len(reordered_orders_l1)
+    input_orders_l2.append(LOQ.combine_orders_from_downstreams(reordered_orders_l1[:total_l1//2]))
+    input_orders_l2.append(LOQ.combine_orders_from_downstreams(reordered_orders_l1[total_l1//2:]))
+
     reordered_orders_l2 = list(map(emulate_network_link, input_orders_l2))
     reordered_orders = LOQ.combine_orders_from_downstreams(reordered_orders_l2)
     lob = LimitOrderBook()
-    for o in reordered_orders: lob.add_order(o)
-    return lob.get_matched_orders_sequence()
+    for o in reordered_orders:
+        lob.add_order(o)
+    return lob.get_matched_orders_sequence(), lob.get_inserted_orders_sequence()
 
 def emulate_network_link(stream: List[Order]):
     if config.NETWORK_REORDERING:
@@ -103,13 +74,19 @@ def simulate_distributed_engine(orders: List[List[Order]], queue_size: int) -> L
     # emulation to output of each proxy
     reordered_orders_l1 = list(map(emulate_network_link, reordered_orders_l1))
 
-    # Combine every two loqs output into one sequence (representing two proxies feeding their output to a parent proxy)
+    # Strategy 1: Combine every two loqs output into one sequence (representing two proxies feeding their output to a parent proxy)
+    # input_orders_l2: List[List[Order]] = []
+    # index = 0
+    # while index < len(reordered_orders_l1):
+    #     input_orders_l2.append(LOQ.combine_orders_from_downstreams(
+    #         [reordered_orders_l1[index], reordered_orders_l1[index+1]]))
+    #     index += 2
+
+    # Strategy 2: Combine half loqs in one and other half in another (representing two proxies receving data from downstream proxies)
     input_orders_l2: List[List[Order]] = []
-    index = 0
-    while index < len(reordered_orders_l1):
-        input_orders_l2.append(LOQ.combine_orders_from_downstreams(
-            [reordered_orders_l1[index], reordered_orders_l1[index+1]]))
-        index += 2
+    total_l1 = len(reordered_orders_l1)
+    input_orders_l2.append(LOQ.combine_orders_from_downstreams(reordered_orders_l1[:total_l1//2]))
+    input_orders_l2.append(LOQ.combine_orders_from_downstreams(reordered_orders_l1[total_l1//2:]))
 
     # Do the same with input_orders_l2 as we did with input_orders_l1
     reordered_orders_l2: List[List[Order]] = []
@@ -122,8 +99,10 @@ def simulate_distributed_engine(orders: List[List[Order]], queue_size: int) -> L
 
     # Feed then reordered sequence to ME and get the output
     lob = LimitOrderBook()
-    for o in reordered_orders: lob.add_order(o)
-    return lob.get_matched_orders_sequence()
+    for o in reordered_orders:
+        lob.add_order(o)
+    return lob.get_matched_orders_sequence(), lob.get_inserted_orders_sequence()
+    # return lob.get_inserted_orders_sequence()
 
 '''
 Given the sequences representing in what order all the trading orders got matched, 
@@ -131,7 +110,8 @@ it checks whether the orders in `distributed` were late (and by how much).
 If an order was the i-th order to get matched in the centralized version and it was
 j-th order to get matched in the distributed version, then the lateness of this order is |j-i|
 '''
-def compare_matched_orders(centralized: List[int], distributed: List[int]):
+def compare_matched_orders(centralized: List[str], distributed: List[str]):
+    print("Raw equality: ", centralized==distributed)
     t1 = {}
     t2 = {}
     for i, o in enumerate(centralized): t1[o] = i
@@ -152,6 +132,7 @@ def compare_matched_orders(centralized: List[int], distributed: List[int]):
         print("50p Lateness: ", np.percentile(data, 50))
         print("90p Lateness: ", np.percentile(data, 90))
         print("99p Lateness: ", np.percentile(data, 99))
+        print("99.99p Lateness: ", np.percentile(data, 99.99))
 
     return data
 
@@ -169,11 +150,14 @@ def simulate(queue_size=None, total_orders=None):
     queue_size = queue_size if queue_size is not None else config.QUEUE_SIZE
     total_orders = total_orders if total_orders is not None else config.TOTAL_ORDERS
 
-    orders_sequences = create_order_sequences(total_orders, config.TOTAL_LOQS)
-    centralized_output = simulate_centralized_engine(orders_sequences)
-    distributed_output = simulate_distributed_engine(orders_sequences, queue_size)
+    orders_sequences = order.create_order_sequences(total_orders, config.TOTAL_LOQS)
+    c_matched, c_inserted = simulate_centralized_engine(orders_sequences)
+    d_matched, d_inserted = simulate_distributed_engine(orders_sequences, queue_size)
 
-    return compare_matched_orders(centralized_output, distributed_output)
+    print("Inserted:")
+    compare_matched_orders(c_inserted, d_inserted)
+    print("Matched")
+    return compare_matched_orders(c_matched, d_matched)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process some orders.")
@@ -190,4 +174,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    config.LOGGING = True
     simulate(queue_size=args.queue_size, total_orders=args.total_orders)

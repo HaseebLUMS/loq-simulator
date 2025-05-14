@@ -5,6 +5,7 @@ from simulate import simulate
 import config
 
 def compute_confidence_intervals(simulate, qs, total_orders, percentages, num_simulations=100, confidence=95):
+    return None, None
     """
     Compute confidence intervals by repeatedly calling `simulate`.
     """
@@ -29,7 +30,8 @@ def main():
     total_orders = config.TOTAL_ORDERS
     num_simulations = config.NUM_SIMULATIONS  # Number of times to call simulate, for confidence intervals
 
-    for qs in range(5, 30, 5):  # Trying several Queue Sizes
+    for qs in range(100, 101):  # Trying several Queue Sizes
+    # for qs in range(5, 30, 5):  # Trying several Queue Sizes
         # Generate data for the main CDF
         data = simulate(qs, total_orders)  # The main simulation code
         cdf = np.percentile(data, percentages)
