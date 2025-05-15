@@ -13,6 +13,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib.patches import Rectangle
 
 def compute_confidence_intervals(simulate, qs, total_orders, percentages, num_simulations=100, confidence=95):
+    # return None, None
     all_percentiles = []
     for _ in range(num_simulations):
         data, _, _ = simulate(qs, total_orders)
@@ -33,7 +34,7 @@ def main():
     percentages = list(range(1, 101))
     total_orders = config.TOTAL_ORDERS
     num_simulations = config.NUM_SIMULATIONS
-    loss_rates = [0, 0.0001, 0.0005, 0.001, 0.005]
+    loss_rates = [0, 0.00005, 0.0005, 0.005]
 
     fig, ax = plt.subplots(figsize=(8, 6))
 
@@ -48,7 +49,7 @@ def main():
             cdf = np.percentile(data, percentages)
             lower, upper = compute_confidence_intervals(simulate, qs, total_orders, percentages, num_simulations)
 
-            ax.plot(cdf, percentages, label=f"loss rate={config.LOSS_RATE * 100:.02f}%", linewidth=2)
+            ax.plot(cdf, percentages, label=f"loss rate={config.LOSS_RATE * 100:.03f}%", linewidth=2)
             if lower is not None:
                 ax.fill_betweenx(percentages, lower, upper, alpha=0.2)
 
