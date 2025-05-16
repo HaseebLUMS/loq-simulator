@@ -27,9 +27,10 @@ class Order:
         if self.timestamp == other.timestamp: return self.client < other.client
         return self.timestamp < other.timestamp
 
-def simulate_loss(rate) -> int:
+def simulate_loss(rate, client) -> int:
     '''with probability `rate`, it returns 1 i.e., drop. otherwise 0'''
-    # assert 0.0 <= rate <= 1.0
+    if (len(config.LOSSY_CLIENTS) > 0 and client not in config.LOSSY_CLIENTS):
+        return 0
     return 1 if random.random() < rate else 0
 
 # Create m sequence of trading orders, each sequence has n orders
@@ -68,7 +69,7 @@ def create_order_sequences(n: int, m: int) -> List[List[Order]]:
 
             quantity = 1
 
-            if simulate_loss(rate=config.LOSS_RATE) == 0: I_m_id = order_id-1
+            if simulate_loss(rate=config.LOSS_RATE, client=client) == 0: I_m_id = order_id-1
             else: total_losses += 1
 
             # Create order

@@ -10,10 +10,11 @@ TOTAL_LOQS = 10
 
 LOQ_VERSION = 4  # 3 is the latest version
 LOSS_RATE = 0.5 # * 100 percent, so 0.05 means 5 percent
+LOSSY_CLIENTS = [0]  # leave empty for making all lossy
 
 # Experiment specific
 NUM_SIMULATIONS = 10
-TOTAL_ORDERS = 100000
+TOTAL_ORDERS = 1000
 
 LOGGING = True
 NETWORK_REORDERING = False  # As we use TCP, so it should stay False

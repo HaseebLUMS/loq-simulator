@@ -1,4 +1,5 @@
-Run `python3 main.py tmp.pdf`
+Run `python3 main.py tmp.json`
+Run `python3 plot.py tmp.json tmp`
 Resulting pdf will be stored in figs/ dir.
 
 Lateness of an order o is defined as following:
