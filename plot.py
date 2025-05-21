@@ -48,7 +48,7 @@ def plot_from_json(json_path, output_filename):
 
     axins.set_xlim(-1, 20)
     axins.set_ylim(80, 102)
-    axins.tick_params(labelsize=8)
+    axins.tick_params(labelsize=22)
 
     plt.tight_layout()
     plt.savefig(f"figs/{output_filename}.pdf", bbox_inches='tight')
