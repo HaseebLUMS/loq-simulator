@@ -25,7 +25,7 @@ def main():
     percentages = list(range(1, 101))
     total_orders = config.TOTAL_ORDERS
     num_simulations = config.NUM_SIMULATIONS
-    loss_rates = [0, 0.005, 0.05, 0.5]
+    loss_rates = [0, 0.00005, 0.0005, 0.005]
     qs = 100
 
     results = {

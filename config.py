@@ -14,7 +14,7 @@ LOSSY_CLIENTS = []  # leave empty for making all lossy
 
 # Experiment specific
 NUM_SIMULATIONS = 10
-TOTAL_ORDERS = 1000
+TOTAL_ORDERS = 100000
 
 LOGGING = True
 NETWORK_REORDERING = False  # As we use TCP, so it should stay False
