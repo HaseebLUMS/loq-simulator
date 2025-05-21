@@ -4,7 +4,7 @@ ASK_RANGE = [3,7]
 MID_PRICE = 4
 ACTION_WINDOW = 1
 QUEUE_SIZE = 10  # as percentage of all the orders, 50 denotes 50% of the orders are queued at a time. Overwritten in main.py
-TOTAL_LOQS = 10
+TOTAL_LOQS = 100
 
 # 3
 
@@ -14,7 +14,7 @@ LOSSY_CLIENTS = []  # leave empty for making all lossy
 
 # Experiment specific
 NUM_SIMULATIONS = 10
-TOTAL_ORDERS = 100000
+TOTAL_ORDERS = 1000
 
 LOGGING = True
 NETWORK_REORDERING = False  # As we use TCP, so it should stay False
