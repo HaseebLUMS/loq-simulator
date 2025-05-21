@@ -22,9 +22,11 @@ def main():
         exit(1)
 
     output_path = sys.argv[1]
+    # percentages = np.arange(90.0, 100.0, 0.05).tolist()
     percentages = list(range(1, 101))
     total_orders = config.TOTAL_ORDERS
     num_simulations = config.NUM_SIMULATIONS
+    # loss_rates = [0.00005]
     loss_rates = [0, 0.00005, 0.0005, 0.005]
     qs = 100
 
@@ -39,6 +41,11 @@ def main():
         data, _, _ = simulate(qs, total_orders)
         cdf = np.percentile(data, percentages).tolist()
         lower, upper = compute_confidence_intervals(simulate, qs, total_orders, percentages, num_simulations)
+
+        for elem, p in zip(cdf, percentages):
+            if (elem > 0):
+                print("non-zero lateness until ", p, f"(={elem})")
+                break
 
         results["results_by_loss_rate"][str(lr)] = {
             "cdf": cdf,
