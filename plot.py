@@ -57,4 +57,4 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python plot_results.py results.json output_name")
         exit(1)
-    plot_from_json(sys.argv[1], sys.argv[2])
+    plot_from_json(f"output/{sys.argv[1]}.json", sys.argv[2])

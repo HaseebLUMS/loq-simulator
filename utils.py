@@ -3,7 +3,7 @@ import random
 from typing import TYPE_CHECKING, List
 from order import Order
 
-def find_longest_common_subsequence(o1: List[int], o2: List[int]):
+def find_longest_common_subsequence(o1: List[str], o2: List[str]) -> int:
     n, m = len(o1), len(o2)
 
     # Create a 2D DP table with dimensions (n+1) x (m+1) initialized to 0

@@ -18,16 +18,16 @@ def compute_confidence_intervals(simulate, qs, total_orders, percentages, num_si
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python run_simulation.py output.json")
+        print("Usage: python run_simulation.py output")
         exit(1)
 
-    output_path = sys.argv[1]
+    output_path = f"output/{sys.argv[1]}.json"
     # percentages = np.arange(90.0, 100.0, 0.05).tolist()
     percentages = list(range(1, 101))
     total_orders = config.TOTAL_ORDERS
     num_simulations = config.NUM_SIMULATIONS
-    # loss_rates = [0.00005]
-    loss_rates = [0, 0.00005, 0.0005, 0.005]
+    # loss_rates = [0.005]
+    loss_rates = [0, 0.00005, 0.0005, 0.001, 0.005]
     qs = 100
 
     results = {
@@ -40,7 +40,8 @@ def main():
         config.LOSS_RATE = lr
         data, _, _ = simulate(qs, total_orders)
         cdf = np.percentile(data, percentages).tolist()
-        lower, upper = compute_confidence_intervals(simulate, qs, total_orders, percentages, num_simulations)
+        lower, upper = None, None
+        if lr > 0: lower, upper = compute_confidence_intervals(simulate, qs, total_orders, percentages, num_simulations)
 
         for elem, p in zip(cdf, percentages):
             if (elem > 0):

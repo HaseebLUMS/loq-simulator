@@ -39,6 +39,7 @@ def simulate_centralized_engine(orders: List[List[Order]]) -> List[int]:
     for o in reordered_orders:
         lob.add_order(o)
     return lob.get_matched_orders_sequence(), lob.sell_records, lob.buy_records
+    # return lob.get_inserted_orders_sequence(), lob.sell_records, lob.buy_records
 
 def emulate_network_link(stream: List[Order]):
     if config.NETWORK_REORDERING:
@@ -102,15 +103,15 @@ def simulate_distributed_engine(orders: List[List[Order]], queue_size: int) -> L
     for o in reordered_orders:
         lob.add_order(o)
     return lob.get_matched_orders_sequence(), lob.sell_records, lob.buy_records
-    # return lob.get_inserted_orders_sequence()
+    # return lob.get_inserted_orders_sequence(), lob.sell_records, lob.buy_records
 
-'''
-Given the sequences representing in what order all the trading orders got matched, 
-it checks whether the orders in `distributed` were late (and by how much).
-If an order was the i-th order to get matched in the centralized version and it was
-j-th order to get matched in the distributed version, then the lateness of this order is |j-i|
-'''
 def compare_matched_orders(centralized: List[str], distributed: List[str]):
+    '''
+    Given the sequences representing in what order all the trading orders got matched, 
+    it checks whether the orders in `distributed` were late (and by how much).
+    If an order was the i-th order to get matched in the centralized version and it was
+    j-th order to get matched in the distributed version, then the lateness of this order is |j-i|
+    '''
     print("Raw equality: ", centralized==distributed)
     t1 = {}
     t2 = {}
@@ -129,12 +130,43 @@ def compare_matched_orders(centralized: List[str], distributed: List[str]):
         data.append(late)
 
     if config.LOGGING:
-        print("50p Lateness: ", np.percentile(data, 50))
-        # print("90p Lateness: ", np.percentile(data, 90))
+        # print("50p Lateness: ", np.percentile(data, 50))
+        print("90p Lateness: ", np.percentile(data, 90))
         # print("99p Lateness: ", np.percentile(data, 99))
         # print("99.99p Lateness: ", np.percentile(data, 99.99))
 
     return data
+
+def mismatching_sequence(centralized: List[str], distributed: List[str]):
+    l = utils.find_longest_common_subsequence(centralized, distributed)
+    m = max(len(centralized), len(distributed))
+    res = 100.0 * (m-l) / m
+    print("Mismatching seq: ", res, "%")
+    return res
+
+def count_mismatch_in_distributed(centralized: List[str], distributed: List[str]):
+    ignored = set()
+    i, j = 0, 0
+
+    while i < len(centralized) and j < len(distributed):
+        if centralized[i] == distributed[j]:
+            i += 1
+            j += 1
+            continue
+
+        if centralized[i] in ignored:
+            i += 1
+            continue
+
+        ignored.add(distributed[j])
+        j += 1
+
+    while i < len(centralized):
+        if (centralized[i] not in ignored):
+            ignored.add(centralized[i])
+        i += 1
+
+    print("Mismatched: ", 100.0 * len(ignored) / len(centralized), "%")
 
 def compare_records(c, d):
     result = {}
@@ -168,6 +200,7 @@ def simulate(queue_size=None, total_orders=None):
     sells = compare_records(c_sell_records, d_sell_records)
     buys = compare_records(c_buy_records, d_buy_records)
 
+    # count_mismatch_in_distributed(c_matched, d_matched), sells, buys
     return compare_matched_orders(c_matched, d_matched), sells, buys
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ LOSSY_CLIENTS = []  # leave empty for making all lossy
 
 # Experiment specific
 NUM_SIMULATIONS = 10
-TOTAL_ORDERS = 1000
+TOTAL_ORDERS = 5000
 
 LOGGING = True
 NETWORK_REORDERING = False  # As we use TCP, so it should stay False
@@ -26,4 +26,4 @@ assert (MID_PRICE+ACTION_WINDOW == BID_RANGE[1])
 assert (MID_PRICE-ACTION_WINDOW == ASK_RANGE[0])
 assert (MID_PRICE-ACTION_WINDOW >= BID_RANGE[0])
 assert (MID_PRICE+ACTION_WINDOW <= ASK_RANGE[1])
-assert (TOTAL_LOQS%2 == 0)  # there will be `TOTAL_LOQS` in the last level and `TOTAL_LOQS/2` in the second last level
+assert (TOTAL_LOQS%2 == 0)  # there will be `TOTAL_LOQS` in the last level and `2` in the second last level
